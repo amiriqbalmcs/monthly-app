@@ -1,31 +1,31 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { View, Text, StyleSheet, Modal, TextInput, TouchableOpacity, Alert, ScrollView, KeyboardAvoidingView, Platform } from 'react-native';
 import { useApp } from '@/contexts/AppContext';
-import { Contribution, Member } from '@/types';
+import { Contribution, Participant } from '@/types';
 import { X, Check, ChevronDown, Search } from 'lucide-react-native';
 
 interface ContributionModalProps {
   visible: boolean;
   onClose: () => void;
   contribution?: Contribution | null;
-  committeeId?: number; // Optional committee filter
+  groupId?: number; // Optional group filter
 }
 
 export const ContributionModal: React.FC<ContributionModalProps> = ({
   visible,
   onClose,
   contribution,
-  committeeId
+  groupId
 }) => {
-  const { isDarkMode, members, committees, addContribution, updateContribution } = useApp();
+  const { isDarkMode, participants, groups, addContribution, updateContribution } = useApp();
   
   const [amount, setAmount] = useState('');
   const [note, setNote] = useState('');
   const [date, setDate] = useState('');
-  const [memberId, setMemberId] = useState<number | null>(null);
+  const [participantId, setParticipantId] = useState<number | null>(null);
   const [loading, setLoading] = useState(false);
-  const [showMemberDropdown, setShowMemberDropdown] = useState(false);
-  const [memberSearch, setMemberSearch] = useState('');
+  const [showParticipantDropdown, setShowParticipantDropdown] = useState(false);
+  const [participantSearch, setParticipantSearch] = useState('');
 
   const backgroundColor = isDarkMode ? '#111827' : '#ffffff';
   const textColor = isDarkMode ? '#ffffff' : '#111827';
@@ -33,17 +33,17 @@ export const ContributionModal: React.FC<ContributionModalProps> = ({
   const inputBackground = isDarkMode ? '#374151' : '#f3f4f6';
   const borderColor = isDarkMode ? '#4b5563' : '#d1d5db';
 
-  const activeMembers = useMemo(() => 
-    members.filter(m => {
-      // If committeeId is provided, only show members from that committee
-      const matchesCommittee = committeeId ? m.committee_id === committeeId : true;
+  const activeParticipants = useMemo(() => 
+    participants.filter(p => {
+      // If groupId is provided, only show participants from that group
+      const matchesGroup = groupId ? p.group_id === groupId : true;
       return (
-        m.status === 'active' && 
-        matchesCommittee &&
-        m.name.toLowerCase().includes(memberSearch.toLowerCase())
+        p.status === 'active' && 
+        matchesGroup &&
+        p.name.toLowerCase().includes(participantSearch.toLowerCase())
       );
     }), 
-    [members, memberSearch, committeeId]
+    [participants, participantSearch, groupId]
   );
 
   useEffect(() => {
@@ -51,17 +51,17 @@ export const ContributionModal: React.FC<ContributionModalProps> = ({
       setAmount(contribution.amount.toString());
       setNote(contribution.note);
       setDate(contribution.date);
-      setMemberId(contribution.member_id);
+      setParticipantId(contribution.participant_id);
     } else {
       // Reset form for new contribution
       setAmount('');
       setNote('');
       setDate(new Date().toISOString().split('T')[0]);
-      setMemberId(activeMembers.length > 0 ? activeMembers[0].id : null);
+      setParticipantId(activeParticipants.length > 0 ? activeParticipants[0].id : null);
     }
-    setShowMemberDropdown(false);
-    setMemberSearch('');
-  }, [contribution, visible, activeMembers]);
+    setShowParticipantDropdown(false);
+    setParticipantSearch('');
+  }, [contribution, visible, activeParticipants]);
 
   const handleSubmit = async () => {
     if (!amount.trim() || isNaN(Number(amount))) {
@@ -69,8 +69,8 @@ export const ContributionModal: React.FC<ContributionModalProps> = ({
       return;
     }
 
-    if (!memberId) {
-      Alert.alert('Error', 'Please select a member');
+    if (!participantId) {
+      Alert.alert('Error', 'Please select a participant');
       return;
     }
 
@@ -82,9 +82,9 @@ export const ContributionModal: React.FC<ContributionModalProps> = ({
     setLoading(true);
     
     try {
-      const member = members.find(m => m.id === memberId);
-      if (!member) {
-        Alert.alert('Error', 'Selected member not found');
+      const participant = participants.find(p => p.id === participantId);
+      if (!participant) {
+        Alert.alert('Error', 'Selected participant not found');
         return;
       }
 
@@ -92,8 +92,8 @@ export const ContributionModal: React.FC<ContributionModalProps> = ({
         amount: Number(amount),
         note: note.trim(),
         date: date,
-        member_id: memberId,
-        committee_id: committeeId || member.committee_id,
+        participant_id: participantId,
+        group_id: groupId || participant.group_id,
         created_at: new Date().toISOString()
       };
 
@@ -111,8 +111,8 @@ export const ContributionModal: React.FC<ContributionModalProps> = ({
     }
   };
 
-  const selectedMember = members.find(m => m.id === memberId);
-  const selectedCommittee = selectedMember ? committees.find(c => c.id === selectedMember.committee_id) : null;
+  const selectedParticipant = participants.find(p => p.id === participantId);
+  const selectedGroup = selectedParticipant ? groups.find(g => g.id === selectedParticipant.group_id) : null;
 
   return (
     <Modal
@@ -137,56 +137,56 @@ export const ContributionModal: React.FC<ContributionModalProps> = ({
         <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
           <View style={styles.form}>
             <View style={styles.inputGroup}>
-              <Text style={[styles.label, { color: textColor }]}>Member *</Text>
+              <Text style={[styles.label, { color: textColor }]}>Participant *</Text>
               <TouchableOpacity
                 style={[styles.dropdown, { backgroundColor: inputBackground, borderColor }]}
-                onPress={() => setShowMemberDropdown(!showMemberDropdown)}
+                onPress={() => setShowParticipantDropdown(!showParticipantDropdown)}
               >
                 <View style={styles.dropdownContent}>
                   <Text style={[styles.dropdownText, { color: textColor }]} numberOfLines={1}>
-                    {selectedMember ? selectedMember.name : 'Select a member'}
+                    {selectedParticipant ? selectedParticipant.name : 'Select a participant'}
                   </Text>
-                  {selectedCommittee && (
+                  {selectedGroup && (
                     <Text style={[styles.dropdownSubText, { color: subTextColor }]} numberOfLines={1}>
-                      {selectedCommittee.name}
+                      {selectedGroup.name}
                     </Text>
                   )}
                 </View>
                 <ChevronDown size={16} color={subTextColor} />
               </TouchableOpacity>
               
-              {showMemberDropdown && (
+              {showParticipantDropdown && (
                 <View style={[styles.dropdownMenu, { backgroundColor: inputBackground, borderColor }]}>
                   <View style={[styles.searchContainer, { borderBottomColor: borderColor }]}>
                     <Search size={16} color={subTextColor} />
                     <TextInput
                       style={[styles.searchInput, { color: textColor }]}
-                      placeholder="Search members..."
+                      placeholder="Search participants..."
                       placeholderTextColor={subTextColor}
-                      value={memberSearch}
-                      onChangeText={setMemberSearch}
+                      value={participantSearch}
+                      onChangeText={setParticipantSearch}
                       autoFocus={false}
                     />
                   </View>
                   <ScrollView style={styles.dropdownScroll} nestedScrollEnabled>
-                    {activeMembers.map((member) => {
-                      const committee = committees.find(c => c.id === member.committee_id);
+                    {activeParticipants.map((participant) => {
+                      const group = groups.find(g => g.id === participant.group_id);
                       return (
                         <TouchableOpacity
-                          key={member.id}
+                          key={participant.id}
                           style={styles.dropdownItem}
                           onPress={() => {
-                            setMemberId(member.id);
-                            setShowMemberDropdown(false);
-                            setMemberSearch('');
+                            setParticipantId(participant.id);
+                            setShowParticipantDropdown(false);
+                            setParticipantSearch('');
                           }}
                         >
                           <View style={styles.memberOption}>
                             <Text style={[styles.dropdownText, { color: textColor }]} numberOfLines={1}>
-                              {member.name}
+                              {participant.name}
                             </Text>
                             <Text style={[styles.dropdownSubText, { color: subTextColor }]} numberOfLines={1}>
-                              {committee?.name || 'Unknown Committee'}
+                              {group?.name || 'Unknown Group'}
                             </Text>
                           </View>
                         </TouchableOpacity>
@@ -266,9 +266,7 @@ export const ContributionModal: React.FC<ContributionModalProps> = ({
 };
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-  },
+  container: { flex: 1 },
   header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
@@ -278,127 +276,53 @@ const styles = StyleSheet.create({
     paddingBottom: 16,
     borderBottomWidth: 1,
   },
-  title: {
-    fontSize: 24,
-    fontFamily: 'Inter-Bold',
-  },
-  closeButton: {
-    padding: 4,
-  },
-  scrollView: {
-    flex: 1,
-  },
-  form: {
-    padding: 20,
-  },
-  inputGroup: {
-    marginBottom: 16,
-    position: 'relative',
-  },
-  label: {
-    fontSize: 16,
-    fontFamily: 'Inter-Medium',
-    marginBottom: 8,
-  },
+  title: { fontSize: 24, fontFamily: 'Inter-Bold' },
+  closeButton: { padding: 4 },
+  scrollView: { flex: 1 },
+  form: { padding: 20 },
+  inputGroup: { marginBottom: 16, position: 'relative' },
+  label: { fontSize: 16, fontFamily: 'Inter-Medium', marginBottom: 8 },
   input: {
-    borderWidth: 1,
-    borderRadius: 12,
-    padding: 12,
-    fontSize: 16,
-    fontFamily: 'Inter-Regular',
+    borderWidth: 1, borderRadius: 12, padding: 12,
+    fontSize: 16, fontFamily: 'Inter-Regular'
   },
   textArea: {
-    borderWidth: 1,
-    borderRadius: 12,
-    padding: 12,
-    fontSize: 16,
-    fontFamily: 'Inter-Regular',
-    minHeight: 80,
-    textAlignVertical: 'top',
+    borderWidth: 1, borderRadius: 12, padding: 12,
+    fontSize: 16, fontFamily: 'Inter-Regular',
+    minHeight: 80, textAlignVertical: 'top',
   },
   dropdown: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: 'row', alignItems: 'center',
     justifyContent: 'space-between',
-    borderWidth: 1,
-    borderRadius: 12,
-    padding: 12,
+    borderWidth: 1, borderRadius: 12, padding: 12,
   },
-  dropdownContent: {
-    flex: 1,
-  },
-  dropdownText: {
-    fontSize: 16,
-    fontFamily: 'Inter-Regular',
-  },
-  dropdownSubText: {
-    fontSize: 12,
-    fontFamily: 'Inter-Regular',
-    marginTop: 2,
-  },
+  dropdownContent: { flex: 1 },
+  dropdownText: { fontSize: 16, fontFamily: 'Inter-Regular' },
+  dropdownSubText: { fontSize: 12, fontFamily: 'Inter-Regular', marginTop: 2 },
   dropdownMenu: {
-    position: 'absolute',
-    top: '100%',
-    left: 0,
-    right: 0,
-    borderWidth: 1,
-    borderRadius: 12,
-    marginTop: 4,
-    maxHeight: 250,
-    zIndex: 1000,
+    position: 'absolute', top: '100%', left: 0, right: 0,
+    borderWidth: 1, borderRadius: 12, marginTop: 4,
+    maxHeight: 250, zIndex: 1000,
   },
   searchContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    padding: 12,
-    borderBottomWidth: 1,
-    gap: 8,
+    flexDirection: 'row', alignItems: 'center',
+    padding: 12, borderBottomWidth: 1, gap: 8,
   },
-  searchInput: {
-    flex: 1,
-    fontSize: 14,
-    fontFamily: 'Inter-Regular',
-  },
-  dropdownScroll: {
-    maxHeight: 180,
-  },
-  dropdownItem: {
-    padding: 12,
-  },
-  memberOption: {
-    flex: 1,
-  },
+  searchInput: { flex: 1, fontSize: 14, fontFamily: 'Inter-Regular' },
+  dropdownScroll: { maxHeight: 180 },
+  dropdownItem: { padding: 12 },
+  memberOption: { flex: 1 },
   actions: {
-    flexDirection: 'row',
-    gap: 12,
-    padding: 20,
-    borderTopWidth: 1,
+    flexDirection: 'row', gap: 12,
+    padding: 20, borderTopWidth: 1,
   },
   button: {
-    flex: 1,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingVertical: 12,
-    borderRadius: 12,
-    gap: 8,
+    flex: 1, flexDirection: 'row',
+    alignItems: 'center', justifyContent: 'center',
+    paddingVertical: 12, borderRadius: 12, gap: 8,
   },
-  cancelButton: {
-    backgroundColor: 'transparent',
-    borderWidth: 1,
-    borderColor: '#6b7280',
-  },
-  submitButton: {
-    backgroundColor: '#667eea',
-  },
-  cancelButtonText: {
-    fontSize: 16,
-    fontFamily: 'Inter-Medium',
-    color: '#6b7280',
-  },
-  submitButtonText: {
-    fontSize: 16,
-    fontFamily: 'Inter-Medium',
-    color: '#ffffff',
-  },
+  cancelButton: { backgroundColor: 'transparent', borderWidth: 1, borderColor: '#6b7280' },
+  submitButton: { backgroundColor: '#667eea' },
+  cancelButtonText: { fontSize: 16, fontFamily: 'Inter-Medium', color: '#6b7280' },
+  submitButtonText: { fontSize: 16, fontFamily: 'Inter-Medium', color: '#ffffff' },
 });
