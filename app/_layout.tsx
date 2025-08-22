@@ -33,7 +33,7 @@ export default function RootLayout() {
       <Stack screenOptions={{ headerShown: false }}>
         <Stack.Screen name="onboarding" />
         <Stack.Screen name="(tabs)" />
-        <Stack.Screen name="committee/[id]" />
+        <Stack.Screen name="group/[id]" />
         <Stack.Screen name="+not-found" />
       </Stack>
       <StatusBar style="auto" />
