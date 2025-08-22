@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { View, Text, StyleSheet, FlatList, TouchableOpacity, RefreshControl, Alert } from 'react-native';
 import { useApp } from '@/contexts/AppContext';
-import { Committee, getCurrencySymbol } from '@/types';
+import { Group, getCurrencySymbol } from '@/types';
 import { Plus, Users, DollarSign, CreditCard as Edit, Trash2, Search, Eye, EyeOff } from 'lucide-react-native';
 import Animated, { FadeInUp, FadeOutUp } from 'react-native-reanimated';
 import { GroupModal } from '@/components/GroupModal';
@@ -9,19 +9,19 @@ import { AdBanner } from '@/components/AdBanner';
 import { AD_CONFIG } from '@/constants/ads';
 import { router } from 'expo-router';
 
-export default function CommitteesScreen() {
+export default function GroupsScreen() {
   const { 
     isDarkMode, 
-    committees, 
-    members,
+    groups, 
+    participants,
     selectedCurrency,
     isLoading,
     refreshData,
-    deleteCommittee
+    deleteGroup
   } = useApp();
 
   const [isModalVisible, setIsModalVisible] = useState(false);
-  const [editingCommittee, setEditingCommittee] = useState<Committee | null>(null);
+  const [editingGroup, setEditingGroup] = useState<Group | null>(null);
   const [refreshing, setRefreshing] = useState(false);
   const [showInactive, setShowInactive] = useState(false);
 
@@ -30,7 +30,7 @@ export default function CommitteesScreen() {
   const textColor = isDarkMode ? '#ffffff' : '#111827';
   const subTextColor = isDarkMode ? '#9ca3af' : '#6b7280';
 
-  const displayedCommittees = showInactive ? committees : committees.filter(c => c.is_active);
+  const displayedGroups = showInactive ? groups : groups.filter(c => c.is_active);
 
   const handleRefresh = async () => {
     setRefreshing(true);
@@ -38,20 +38,20 @@ export default function CommitteesScreen() {
     setRefreshing(false);
   };
 
-  const handleAddCommittee = () => {
-    setEditingCommittee(null);
+  const handleAddGroup = () => {
+    setEditingGroup(null);
     setIsModalVisible(true);
   };
 
-  const handleEditCommittee = (committee: Committee) => {
-    setEditingCommittee(committee);
+  const handleEditGroup = (group: Group) => {
+    setEditingGroup(group);
     setIsModalVisible(true);
   };
 
-  const handleDeleteCommittee = (committee: Committee) => {
+  const handleDeleteGroup = (group: Group) => {
     Alert.alert(
-      'Delete Committee',
-      `Are you sure you want to delete "${committee.name}"? This action cannot be undone.`,
+      'Delete Group',
+      `Are you sure you want to delete "${group.name}"? This action cannot be undone.`,
       [
         { text: 'Cancel', style: 'cancel' },
         {
@@ -59,9 +59,9 @@ export default function CommitteesScreen() {
           style: 'destructive',
           onPress: async () => {
             try {
-              await deleteCommittee(committee.id);
+              await deleteGroup(group.id);
             } catch (error) {
-              Alert.alert('Error', 'Failed to delete committee');
+              Alert.alert('Error', 'Failed to delete group');
             }
           },
         },
@@ -69,44 +69,44 @@ export default function CommitteesScreen() {
     );
   };
 
-  const getCommitteeStats = (committee: Committee) => {
-    const committeeMembers = members.filter(m => m.committee_id === committee.id && m.status === 'active');
-    const totalCollected = committeeMembers.reduce((sum, member) => sum + member.monthly_contribution, 0);
+  const getGroupStats = (group: Group) => {
+    const groupParticipants = participants.filter(m => m.group_id === group.id && m.status === 'active');
+    const totalCollected = groupParticipants.reduce((sum, participant) => sum + participant.monthly_contribution, 0);
     
     return {
-      memberCount: committeeMembers.length,
+      participantCount: groupParticipants.length,
       totalCollected,
-      progress: committee.monthly_amount > 0 ? (totalCollected / committee.monthly_amount) * 100 : 0
+      progress: group.monthly_amount > 0 ? (totalCollected / group.monthly_amount) * 100 : 0
     };
   };
 
-  const renderCommitteeCard = ({ item: committee, index }: { item: Committee; index: number }) => {
-    const stats = getCommitteeStats(committee);
+  const renderGroupCard = ({ item: group, index }: { item: Group; index: number }) => {
+    const stats = getGroupStats(group);
     const progressColor = stats.progress >= 100 ? '#10b981' : stats.progress >= 75 ? '#f59e0b' : '#ef4444';
-    const isInactive = !committee.is_active;
+    const isInactive = !group.is_active;
 
     return (
       <TouchableOpacity
-        onPress={() => router.push(`/committee/${committee.id}`)}
+        onPress={() => router.push(`/group/${group.id}`)}
       >
         <Animated.View 
         entering={FadeInUp.delay(index * 100)} 
         exiting={FadeOutUp}
         style={[
-          styles.committeeCard, 
+          styles.groupCard, 
           { backgroundColor: cardBackground },
           isInactive && { opacity: 0.6 }
         ]}
         >
         <View style={styles.cardHeader}>
           <View style={styles.cardTitleContainer}>
-            <Text style={[styles.committeeName, { color: textColor }]} numberOfLines={1}>
-              {committee.name}
+            <Text style={[styles.groupName, { color: textColor }]} numberOfLines={1}>
+              {group.name}
               {isInactive && ' (Inactive)'}
             </Text>
-            <View style={[styles.statusBadge, { backgroundColor: committee.is_active ? '#10b981' : '#ef4444' }]}>
+            <View style={[styles.statusBadge, { backgroundColor: group.is_active ? '#10b981' : '#ef4444' }]}>
               <Text style={styles.statusText}>
-                {committee.is_active ? 'Active' : 'Inactive'}
+                {group.is_active ? 'Active' : 'Inactive'}
               </Text>
             </View>
           </View>
@@ -114,22 +114,22 @@ export default function CommitteesScreen() {
           <View style={styles.cardActions}>
             <TouchableOpacity 
               style={[styles.actionButton, { backgroundColor: '#667eea' }]}
-              onPress={() => handleEditCommittee(committee)}
+              onPress={() => handleEditGroup(group)}
             >
               <Edit size={16} color="#ffffff" />
             </TouchableOpacity>
             <TouchableOpacity 
               style={[styles.actionButton, { backgroundColor: '#ef4444' }]}
-              onPress={() => handleDeleteCommittee(committee)}
+              onPress={() => handleDeleteGroup(group)}
             >
               <Trash2 size={16} color="#ffffff" />
             </TouchableOpacity>
           </View>
         </View>
 
-        {committee.description ? (
+        {group.description ? (
           <Text style={[styles.description, { color: subTextColor }]} numberOfLines={2}>
-            {committee.description}
+            {group.description}
           </Text>
         ) : null}
 
@@ -137,7 +137,7 @@ export default function CommitteesScreen() {
           <View style={styles.statItem}>
             <Users size={18} color="#667eea" />
             <Text style={[styles.statText, { color: textColor }]}>
-              {stats.memberCount} members
+              {stats.participantCount} participants
             </Text>
           </View>
           
@@ -172,7 +172,7 @@ export default function CommitteesScreen() {
           </View>
           
           <Text style={[styles.progressText, { color: subTextColor }]}>
-            {getCurrencySymbol(selectedCurrency)}{stats.totalCollected.toFixed(0)} of {getCurrencySymbol(selectedCurrency)}{committee.monthly_amount.toFixed(0)}
+            {getCurrencySymbol(selectedCurrency)}{stats.totalCollected.toFixed(0)} of {getCurrencySymbol(selectedCurrency)}{group.monthly_amount.toFixed(0)}
           </Text>
         </View>
       </Animated.View>
@@ -183,12 +183,12 @@ export default function CommitteesScreen() {
   const renderEmptyState = () => (
     <View style={styles.emptyContainer}>
       <Users size={64} color={subTextColor} />
-      <Text style={[styles.emptyTitle, { color: textColor }]}>No Committees Yet</Text>
+      <Text style={[styles.emptyTitle, { color: textColor }]}>No Groups Yet</Text>
       <Text style={[styles.emptySubtitle, { color: subTextColor }]}>
-        Create your first committee to start managing contributions and members
+        Create your first group to start managing contributions and participants
       </Text>
-      <TouchableOpacity style={styles.emptyButton} onPress={handleAddCommittee}>
-        <Text style={styles.emptyButtonText}>Create Committee</Text>
+      <TouchableOpacity style={styles.emptyButton} onPress={handleAddGroup}>
+        <Text style={styles.emptyButtonText}>Create Group</Text>
       </TouchableOpacity>
     </View>
   );
@@ -196,9 +196,9 @@ export default function CommitteesScreen() {
   return (
     <View style={[styles.container, { backgroundColor }]}>
       <View style={styles.header}>
-        <Text style={[styles.title, { color: textColor }]}>Committees</Text>
+        <Text style={[styles.title, { color: textColor }]}>Groups</Text>
         <Text style={[styles.subtitle, { color: subTextColor }]}>
-          Manage your committee settings and track progress
+          Manage your group settings and track progress
         </Text>
         
         <View style={styles.headerActions}>
@@ -223,8 +223,8 @@ export default function CommitteesScreen() {
       )}
 
       <FlatList
-        data={displayedCommittees}
-        renderItem={renderCommitteeCard}
+        data={displayedGroups}
+        renderItem={renderGroupCard}
         keyExtractor={(item) => item.id.toString()}
         contentContainerStyle={styles.listContainer}
         showsVerticalScrollIndicator={false}
@@ -242,7 +242,7 @@ export default function CommitteesScreen() {
 
       <TouchableOpacity 
         style={styles.fab}
-        onPress={handleAddCommittee}
+        onPress={handleAddGroup}
       >
         <Plus size={24} color="#ffffff" />
       </TouchableOpacity>
@@ -250,7 +250,7 @@ export default function CommitteesScreen() {
       <GroupModal
         visible={isModalVisible}
         onClose={() => setIsModalVisible(false)}
-        committee={editingCommittee}
+        group={editingGroup}
       />
     </View>
   );
@@ -300,7 +300,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     paddingBottom: 120,
   },
-  committeeCard: {
+  groupCard: {
     padding: 20,
     borderRadius: 16,
     shadowColor: '#000',
@@ -319,7 +319,7 @@ const styles = StyleSheet.create({
     flex: 1,
     marginRight: 12,
   },
-  committeeName: {
+  groupName: {
     fontSize: 18,
     fontFamily: 'Inter-SemiBold',
     marginBottom: 6,

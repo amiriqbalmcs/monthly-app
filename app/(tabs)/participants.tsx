@@ -1,26 +1,26 @@
 import React, { useState, useMemo } from 'react';
 import { View, Text, StyleSheet, FlatList, TouchableOpacity, RefreshControl, Alert, TextInput } from 'react-native';
 import { useApp } from '@/contexts/AppContext';
-import { Member, getCurrencySymbol } from '@/types';
+import { Participant, getCurrencySymbol } from '@/types';
 import { Plus, UserPlus, Search, CreditCard as Edit, Trash2, Mail, Phone } from 'lucide-react-native';
 import Animated, { FadeInUp, FadeOutUp } from 'react-native-reanimated';
 import { ParticipantModal } from '@/components/ParticipantModal';
 import { AdBanner } from '@/components/AdBanner';
 import { AD_CONFIG } from '@/constants/ads';
 
-export default function MembersScreen() {
+export default function ParticipantsScreen() {
   const { 
     isDarkMode, 
-    members,
-    committees,
+    participants,
+    groups,
     selectedCurrency,
     isLoading,
     refreshData,
-    deleteMember
+    deleteParticipant
   } = useApp();
 
   const [isModalVisible, setIsModalVisible] = useState(false);
-  const [editingMember, setEditingMember] = useState<Member | null>(null);
+  const [editingParticipant, setEditingParticipant] = useState<Participant | null>(null);
   const [refreshing, setRefreshing] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
 
@@ -30,12 +30,12 @@ export default function MembersScreen() {
   const subTextColor = isDarkMode ? '#9ca3af' : '#6b7280';
   const inputBackground = isDarkMode ? '#374151' : '#f3f4f6';
 
-  const filteredMembers = useMemo(() => {
-    return members.filter(member => 
-      member.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      member.email.toLowerCase().includes(searchQuery.toLowerCase())
+  const filteredParticipants = useMemo(() => {
+    return participants.filter(participant => 
+      participant.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      participant.email.toLowerCase().includes(searchQuery.toLowerCase())
     );
-  }, [members, searchQuery]);
+  }, [participants, searchQuery]);
 
   const handleRefresh = async () => {
     setRefreshing(true);
@@ -43,20 +43,20 @@ export default function MembersScreen() {
     setRefreshing(false);
   };
 
-  const handleAddMember = () => {
-    setEditingMember(null);
+  const handleAddParticipant = () => {
+    setEditingParticipant(null);
     setIsModalVisible(true);
   };
 
-  const handleEditMember = (member: Member) => {
-    setEditingMember(member);
+  const handleEditParticipant = (participant: Participant) => {
+    setEditingParticipant(participant);
     setIsModalVisible(true);
   };
 
-  const handleDeleteMember = (member: Member) => {
+  const handleDeleteParticipant = (participant: Participant) => {
     Alert.alert(
-      'Delete Member',
-      `Are you sure you want to remove "${member.name}" from the committee?`,
+      'Delete Participant',
+      `Are you sure you want to remove "${participant.name}" from the group?`,
       [
         { text: 'Cancel', style: 'cancel' },
         {
@@ -64,9 +64,9 @@ export default function MembersScreen() {
           style: 'destructive',
           onPress: async () => {
             try {
-              await deleteMember(member.id);
+              await deleteParticipant(participant.id);
             } catch (error) {
-              Alert.alert('Error', 'Failed to delete member');
+              Alert.alert('Error', 'Failed to delete participant');
             }
           },
         },
@@ -83,39 +83,39 @@ export default function MembersScreen() {
     }
   };
 
-  const renderMemberCard = ({ item: member, index }: { item: Member; index: number }) => {
-    const committee = committees.find(c => c.id === member.committee_id);
-    const statusColor = getStatusColor(member.status);
+  const renderParticipantCard = ({ item: participant, index }: { item: Participant; index: number }) => {
+    const group = groups.find(c => c.id === participant.group_id);
+    const statusColor = getStatusColor(participant.status);
 
     return (
       <Animated.View 
         entering={FadeInUp.delay(index * 100)} 
         exiting={FadeOutUp}
-        style={[styles.memberCard, { backgroundColor: cardBackground }]}
+        style={[styles.participantCard, { backgroundColor: cardBackground }]}
       >
         <View style={styles.cardHeader}>
-          <View style={styles.memberInfo}>
-            <Text style={[styles.memberName, { color: textColor }]} numberOfLines={1}>
-              {member.name}
+          <View style={styles.participantInfo}>
+            <Text style={[styles.participantName, { color: textColor }]} numberOfLines={1}>
+              {participant.name}
             </Text>
-            <Text style={[styles.committeeName, { color: subTextColor }]} numberOfLines={1}>
-              {committee?.name || 'Unknown Committee'}
+            <Text style={[styles.groupName, { color: subTextColor }]} numberOfLines={1}>
+              {group?.name || 'Unknown Group'}
             </Text>
             <View style={[styles.statusBadge, { backgroundColor: statusColor }]}>
-              <Text style={styles.statusText}>{member.status}</Text>
+              <Text style={styles.statusText}>{participant.status}</Text>
             </View>
           </View>
           
           <View style={styles.cardActions}>
             <TouchableOpacity 
               style={[styles.actionButton, { backgroundColor: '#667eea' }]}
-              onPress={() => handleEditMember(member)}
+              onPress={() => handleEditParticipant(participant)}
             >
               <Edit size={16} color="#ffffff" />
             </TouchableOpacity>
             <TouchableOpacity 
               style={[styles.actionButton, { backgroundColor: '#ef4444' }]}
-              onPress={() => handleDeleteMember(member)}
+              onPress={() => handleDeleteParticipant(participant)}
             >
               <Trash2 size={16} color="#ffffff" />
             </TouchableOpacity>
@@ -123,20 +123,20 @@ export default function MembersScreen() {
         </View>
 
         <View style={styles.contactInfo}>
-          {member.email ? (
+          {participant.email ? (
             <View style={styles.contactItem}>
               <Mail size={16} color={subTextColor} />
               <Text style={[styles.contactText, { color: subTextColor }]} numberOfLines={1}>
-                {member.email}
+                {participant.email}
               </Text>
             </View>
           ) : null}
           
-          {member.phone ? (
+          {participant.phone ? (
             <View style={styles.contactItem}>
               <Phone size={16} color={subTextColor} />
               <Text style={[styles.contactText, { color: subTextColor }]} numberOfLines={1}>
-                {member.phone}
+                {participant.phone}
               </Text>
             </View>
           ) : null}
@@ -147,12 +147,12 @@ export default function MembersScreen() {
             Monthly Contribution
           </Text>
           <Text style={[styles.contributionAmount, { color: textColor }]}>
-            {getCurrencySymbol(selectedCurrency)}{member.monthly_contribution.toFixed(0)}
+            {getCurrencySymbol(selectedCurrency)}{participant.monthly_contribution.toFixed(0)}
           </Text>
         </View>
 
         <Text style={[styles.joinedDate, { color: subTextColor }]}>
-          Joined {new Date(member.joined_date).toLocaleDateString()}
+          Joined {new Date(participant.joined_date).toLocaleDateString()}
         </Text>
       </Animated.View>
     );
@@ -161,12 +161,12 @@ export default function MembersScreen() {
   const renderEmptyState = () => (
     <View style={styles.emptyContainer}>
       <UserPlus size={64} color={subTextColor} />
-      <Text style={[styles.emptyTitle, { color: textColor }]}>No Members Yet</Text>
+      <Text style={[styles.emptyTitle, { color: textColor }]}>No Participants Yet</Text>
       <Text style={[styles.emptySubtitle, { color: subTextColor }]}>
-        Add members to your committees to start tracking contributions
+        Add participants to your groups to start tracking contributions
       </Text>
-      <TouchableOpacity style={styles.emptyButton} onPress={handleAddMember}>
-        <Text style={styles.emptyButtonText}>Add Member</Text>
+      <TouchableOpacity style={styles.emptyButton} onPress={handleAddParticipant}>
+        <Text style={styles.emptyButtonText}>Add Participant</Text>
       </TouchableOpacity>
     </View>
   );
@@ -174,9 +174,9 @@ export default function MembersScreen() {
   return (
     <View style={[styles.container, { backgroundColor }]}>
       <View style={styles.header}>
-        <Text style={[styles.title, { color: textColor }]}>Members</Text>
+        <Text style={[styles.title, { color: textColor }]}>Participants</Text>
         <Text style={[styles.subtitle, { color: subTextColor }]}>
-          Manage committee members and track contributions
+          Manage group participants and track contributions
         </Text>
       </View>
 
@@ -184,7 +184,7 @@ export default function MembersScreen() {
         <Search size={20} color={subTextColor} />
         <TextInput
           style={[styles.searchInput, { color: textColor }]}
-          placeholder="Search members..."
+          placeholder="Search participants..."
           placeholderTextColor={subTextColor}
           value={searchQuery}
           onChangeText={setSearchQuery}
@@ -196,8 +196,8 @@ export default function MembersScreen() {
       )}
 
       <FlatList
-        data={filteredMembers}
-        renderItem={renderMemberCard}
+        data={filteredParticipants}
+        renderItem={renderParticipantCard}
         keyExtractor={(item) => item.id.toString()}
         contentContainerStyle={styles.listContainer}
         showsVerticalScrollIndicator={false}
@@ -215,7 +215,7 @@ export default function MembersScreen() {
 
       <TouchableOpacity 
         style={styles.fab}
-        onPress={handleAddMember}
+        onPress={handleAddParticipant}
       >
         <Plus size={24} color="#ffffff" />
       </TouchableOpacity>
@@ -223,7 +223,7 @@ export default function MembersScreen() {
       <ParticipantModal
         visible={isModalVisible}
         onClose={() => setIsModalVisible(false)}
-        member={editingMember}
+        participant={editingParticipant}
       />
     </View>
   );
@@ -266,7 +266,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     paddingBottom: 120,
   },
-  memberCard: {
+  participantCard: {
     padding: 20,
     borderRadius: 16,
     shadowColor: '#000',
@@ -281,16 +281,16 @@ const styles = StyleSheet.create({
     alignItems: 'flex-start',
     marginBottom: 16,
   },
-  memberInfo: {
+  participantInfo: {
     flex: 1,
     marginRight: 12,
   },
-  memberName: {
+  participantName: {
     fontSize: 18,
     fontFamily: 'Inter-SemiBold',
     marginBottom: 4,
   },
-  committeeName: {
+  groupName: {
     fontSize: 14,
     fontFamily: 'Inter-Regular',
     marginBottom: 8,

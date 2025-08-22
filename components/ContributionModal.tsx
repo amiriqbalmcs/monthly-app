@@ -1,31 +1,31 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { View, Text, StyleSheet, Modal, TextInput, TouchableOpacity, Alert, ScrollView, KeyboardAvoidingView, Platform } from 'react-native';
 import { useApp } from '@/contexts/AppContext';
-import { Contribution, Member } from '@/types';
+import { Contribution, Participant } from '@/types';
 import { X, Check, ChevronDown, Search } from 'lucide-react-native';
 
 interface ContributionModalProps {
   visible: boolean;
   onClose: () => void;
   contribution?: Contribution | null;
-  committeeId?: number; // Optional committee filter
+  groupId?: number; // Optional group filter
 }
 
 export const ContributionModal: React.FC<ContributionModalProps> = ({
   visible,
   onClose,
   contribution,
-  committeeId
+  groupId
 }) => {
-  const { isDarkMode, members, committees, addContribution, updateContribution } = useApp();
+  const { isDarkMode, participants, groups, addContribution, updateContribution } = useApp();
   
   const [amount, setAmount] = useState('');
   const [note, setNote] = useState('');
   const [date, setDate] = useState('');
-  const [memberId, setMemberId] = useState<number | null>(null);
+  const [participantId, setParticipantId] = useState<number | null>(null);
   const [loading, setLoading] = useState(false);
-  const [showMemberDropdown, setShowMemberDropdown] = useState(false);
-  const [memberSearch, setMemberSearch] = useState('');
+  const [showParticipantDropdown, setShowParticipantDropdown] = useState(false);
+  const [participantSearch, setParticipantSearch] = useState('');
 
   const backgroundColor = isDarkMode ? '#111827' : '#ffffff';
   const textColor = isDarkMode ? '#ffffff' : '#111827';
@@ -33,17 +33,17 @@ export const ContributionModal: React.FC<ContributionModalProps> = ({
   const inputBackground = isDarkMode ? '#374151' : '#f3f4f6';
   const borderColor = isDarkMode ? '#4b5563' : '#d1d5db';
 
-  const activeMembers = useMemo(() => 
-    members.filter(m => {
-      // If committeeId is provided, only show members from that committee
-      const matchesCommittee = committeeId ? m.committee_id === committeeId : true;
+  const activeParticipants = useMemo(() => 
+    participants.filter(m => {
+      // If groupId is provided, only show participants from that group
+      const matchesGroup = groupId ? m.group_id === groupId : true;
       return (
         m.status === 'active' && 
-        matchesCommittee &&
-        m.name.toLowerCase().includes(memberSearch.toLowerCase())
+        matchesGroup &&
+        m.name.toLowerCase().includes(participantSearch.toLowerCase())
       );
     }), 
-    [members, memberSearch, committeeId]
+    [participants, participantSearch, groupId]
   );
 
   useEffect(() => {
@@ -51,17 +51,17 @@ export const ContributionModal: React.FC<ContributionModalProps> = ({
       setAmount(contribution.amount.toString());
       setNote(contribution.note);
       setDate(contribution.date);
-      setMemberId(contribution.member_id);
+      setParticipantId(contribution.participant_id);
     } else {
       // Reset form for new contribution
       setAmount('');
       setNote('');
       setDate(new Date().toISOString().split('T')[0]);
-      setMemberId(activeMembers.length > 0 ? activeMembers[0].id : null);
+      setParticipantId(activeParticipants.length > 0 ? activeParticipants[0].id : null);
     }
-    setShowMemberDropdown(false);
-    setMemberSearch('');
-  }, [contribution, visible, activeMembers]);
+    setShowParticipantDropdown(false);
+    setParticipantSearch('');
+  }, [contribution, visible, activeParticipants]);
 
   const handleSubmit = async () => {
     if (!amount.trim() || isNaN(Number(amount))) {
@@ -69,8 +69,8 @@ export const ContributionModal: React.FC<ContributionModalProps> = ({
       return;
     }
 
-    if (!memberId) {
-      Alert.alert('Error', 'Please select a member');
+    if (!participantId) {
+      Alert.alert('Error', 'Please select a participant');
       return;
     }
 
@@ -79,12 +79,12 @@ export const ContributionModal: React.FC<ContributionModalProps> = ({
       return;
     }
 
-    setLoading(true);
-    
+    // Check if group is being changed for existing participant
+    if (participant && participant.group_id !== groupId) {
     try {
-      const member = members.find(m => m.id === memberId);
-      if (!member) {
-        Alert.alert('Error', 'Selected member not found');
+      const participant = participants.find(m => m.id === participantId);
+      if (!participant) {
+        Alert.alert('Error', 'Selected participant not found');
         return;
       }
 
@@ -92,16 +92,16 @@ export const ContributionModal: React.FC<ContributionModalProps> = ({
         amount: Number(amount),
         note: note.trim(),
         date: date,
-        member_id: memberId,
-        committee_id: committeeId || member.committee_id,
+        participant_id: participantId,
+        group_id: groupId || participant.group_id,
         created_at: new Date().toISOString()
       };
-
-      if (contribution) {
+        'Move Participant to Different Group?',
+        `This will move "${participant.name}" from their current group to the selected group. All their contribution history will be moved as well.`,
         await updateContribution(contribution.id, contributionData);
       } else {
         await addContribution(contributionData);
-      }
+            text: 'Move Participant',
 
       onClose();
     } catch (error) {
@@ -111,8 +111,8 @@ export const ContributionModal: React.FC<ContributionModalProps> = ({
     }
   };
 
-  const selectedMember = members.find(m => m.id === memberId);
-  const selectedCommittee = selectedMember ? committees.find(c => c.id === selectedMember.committee_id) : null;
+  const selectedParticipant = participants.find(m => m.id === participantId);
+  const selectedGroup = selectedParticipant ? groups.find(c => c.id === selectedParticipant.group_id) : null;
 
   return (
     <Modal
@@ -137,56 +137,56 @@ export const ContributionModal: React.FC<ContributionModalProps> = ({
         <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
           <View style={styles.form}>
             <View style={styles.inputGroup}>
-              <Text style={[styles.label, { color: textColor }]}>Member *</Text>
+              <Text style={[styles.label, { color: textColor }]}>Participant *</Text>
               <TouchableOpacity
                 style={[styles.dropdown, { backgroundColor: inputBackground, borderColor }]}
-                onPress={() => setShowMemberDropdown(!showMemberDropdown)}
+                onPress={() => setShowParticipantDropdown(!showParticipantDropdown)}
               >
                 <View style={styles.dropdownContent}>
                   <Text style={[styles.dropdownText, { color: textColor }]} numberOfLines={1}>
-                    {selectedMember ? selectedMember.name : 'Select a member'}
+                    {selectedParticipant ? selectedParticipant.name : 'Select a participant'}
                   </Text>
-                  {selectedCommittee && (
+                  {selectedGroup && (
                     <Text style={[styles.dropdownSubText, { color: subTextColor }]} numberOfLines={1}>
-                      {selectedCommittee.name}
+                      {selectedGroup.name}
                     </Text>
                   )}
                 </View>
                 <ChevronDown size={16} color={subTextColor} />
               </TouchableOpacity>
               
-              {showMemberDropdown && (
+              {showParticipantDropdown && (
                 <View style={[styles.dropdownMenu, { backgroundColor: inputBackground, borderColor }]}>
                   <View style={[styles.searchContainer, { borderBottomColor: borderColor }]}>
                     <Search size={16} color={subTextColor} />
                     <TextInput
                       style={[styles.searchInput, { color: textColor }]}
-                      placeholder="Search members..."
+                      placeholder="Search participants..."
                       placeholderTextColor={subTextColor}
-                      value={memberSearch}
-                      onChangeText={setMemberSearch}
+                      value={participantSearch}
+                      onChangeText={setParticipantSearch}
                       autoFocus={false}
                     />
                   </View>
                   <ScrollView style={styles.dropdownScroll} nestedScrollEnabled>
-                    {activeMembers.map((member) => {
-                      const committee = committees.find(c => c.id === member.committee_id);
+                    {activeParticipants.map((participant) => {
+                      const group = groups.find(c => c.id === participant.group_id);
                       return (
                         <TouchableOpacity
-                          key={member.id}
+                          key={participant.id}
                           style={styles.dropdownItem}
                           onPress={() => {
-                            setMemberId(member.id);
-                            setShowMemberDropdown(false);
-                            setMemberSearch('');
+                            setParticipantId(participant.id);
+                            setShowParticipantDropdown(false);
+                            setParticipantSearch('');
                           }}
                         >
-                          <View style={styles.memberOption}>
+                          <View style={styles.participantOption}>
                             <Text style={[styles.dropdownText, { color: textColor }]} numberOfLines={1}>
-                              {member.name}
+                              {participant.name}
                             </Text>
                             <Text style={[styles.dropdownSubText, { color: subTextColor }]} numberOfLines={1}>
-                              {committee?.name || 'Unknown Committee'}
+                              {group?.name || 'Unknown Group'}
                             </Text>
                           </View>
                         </TouchableOpacity>
@@ -365,7 +365,7 @@ const styles = StyleSheet.create({
   dropdownItem: {
     padding: 12,
   },
-  memberOption: {
+  participantOption: {
     flex: 1,
   },
   actions: {

@@ -15,7 +15,7 @@ export const AD_CONFIG = {
 };
 
 export const PRO_VERSION_INFO = {
-  CONTACT_EMAIL: 'pro@committeemanager.app',
+  CONTACT_EMAIL: 'pro@contributiontracker.app',
   CONTACT_MESSAGE: 'Want an ad-free experience? Contact us for the Pro version!',
   FEATURES: [
     'Ad-free experience',

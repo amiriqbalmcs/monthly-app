@@ -1,13 +1,13 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { View, Text, StyleSheet, Modal, TextInput, TouchableOpacity, Alert, ScrollView, KeyboardAvoidingView, Platform } from 'react-native';
 import { useApp } from '@/contexts/AppContext';
-import { Member, Committee } from '@/types';
+import { Participant, Group } from '@/types';
 import { X, Check, ChevronDown } from 'lucide-react-native';
 
-interface MemberModalProps {
+interface ParticipantModalProps {
   visible: boolean;
   onClose: () => void;
-  member?: Member | null;
+  participant?: Participant | null;
 }
 
 const STATUS_OPTIONS = [
@@ -16,23 +16,23 @@ const STATUS_OPTIONS = [
   { value: 'inactive', label: 'Inactive', color: '#6b7280' }
 ];
 
-export const MemberModal: React.FC<MemberModalProps> = ({
+export const ParticipantModal: React.FC<ParticipantModalProps> = ({
   visible,
   onClose,
-  member
+  participant
 }) => {
-  const { isDarkMode, committees, addMember, updateMember } = useApp();
+  const { isDarkMode, groups, addParticipant, updateParticipant } = useApp();
   
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [phone, setPhone] = useState('');
   const [monthlyContribution, setMonthlyContribution] = useState('');
-  const [committeeId, setCommitteeId] = useState<number | null>(null);
+  const [groupId, setGroupId] = useState<number | null>(null);
   const [status, setStatus] = useState<'active' | 'pending' | 'inactive'>('active');
   const [loading, setLoading] = useState(false);
-  const [showCommitteeDropdown, setShowCommitteeDropdown] = useState(false);
+  const [showGroupDropdown, setShowGroupDropdown] = useState(false);
   const [showStatusDropdown, setShowStatusDropdown] = useState(false);
-  const [committeeSearch, setCommitteeSearch] = useState('');
+  const [groupSearch, setGroupSearch] = useState('');
 
   const backgroundColor = isDarkMode ? '#111827' : '#ffffff';
   const textColor = isDarkMode ? '#ffffff' : '#111827';
@@ -41,43 +41,43 @@ export const MemberModal: React.FC<MemberModalProps> = ({
   const borderColor = isDarkMode ? '#4b5563' : '#d1d5db';
 
 
-  const activeCommittees = useMemo(() => 
-    committees.filter(c => 
+  const activeGroups = useMemo(() => 
+    groups.filter(c => 
       c.is_active && 
-      c.name.toLowerCase().includes(committeeSearch.toLowerCase())
+      c.name.toLowerCase().includes(groupSearch.toLowerCase())
     ), 
-    [committees, committeeSearch]
+    [groups, groupSearch]
   );
   
   useEffect(() => {
-    if (member) {
-      setName(member.name);
-      setEmail(member.email);
-      setPhone(member.phone);
-      setMonthlyContribution(member.monthly_contribution.toString());
-      setCommitteeId(member.committee_id);
-      setStatus(member.status);
+    if (participant) {
+      setName(participant.name);
+      setEmail(participant.email);
+      setPhone(participant.phone);
+      setMonthlyContribution(participant.monthly_contribution.toString());
+      setGroupId(participant.group_id);
+      setStatus(participant.status);
     } else {
-      // Reset form for new member
+      // Reset form for new participant
       setName('');
       setEmail('');
       setPhone('');
       setMonthlyContribution('');
-      setCommitteeId(activeCommittees.length > 0 ? activeCommittees[0].id : null);
+      setGroupId(activeGroups.length > 0 ? activeGroups[0].id : null);
       setStatus('active');
     }
-    setShowCommitteeDropdown(false);
+    setShowGroupDropdown(false);
     setShowStatusDropdown(false);
-  }, [member, visible]);
+  }, [participant, visible]);
 
   const handleSubmit = async () => {
     if (!name.trim()) {
-      Alert.alert('Error', 'Member name is required');
+      Alert.alert('Error', 'Participant name is required');
       return;
     }
 
-    if (!committeeId) {
-      Alert.alert('Error', 'Please select a committee');
+    if (!groupId) {
+      Alert.alert('Error', 'Please select a group');
       return;
     }
 
@@ -86,15 +86,15 @@ export const MemberModal: React.FC<MemberModalProps> = ({
       return;
     }
 
-    // Check if committee is being changed for existing member
-    if (member && member.committee_id !== committeeId) {
+    // Check if group is being changed for existing participant
+    if (participant && participant.group_id !== groupId) {
       Alert.alert(
-        'Move Member to Different Committee?',
-        `This will move "${member.name}" from their current committee to the selected committee. All their contribution history will be moved as well.`,
+        'Move Participant to Different Group?',
+        `This will move "${participant.name}" from their current group to the selected group. All their contribution history will be moved as well.`,
         [
           { text: 'Cancel', style: 'cancel' },
           {
-            text: 'Move Member',
+            text: 'Move Participant',
             style: 'default',
             onPress: () => performUpdate()
           }
@@ -110,31 +110,31 @@ export const MemberModal: React.FC<MemberModalProps> = ({
     setLoading(true);
     
     try {
-      const memberData = {
+      const participantData = {
         name: name.trim(),
         email: email.trim(),
         phone: phone.trim(),
         monthly_contribution: Number(monthlyContribution),
-        committee_id: committeeId,
+        group_id: groupId,
         status,
-        joined_date: member?.joined_date || new Date().toISOString().split('T')[0]
+        joined_date: participant?.joined_date || new Date().toISOString().split('T')[0]
       };
 
-      if (member) {
-        await updateMember(member.id, memberData);
+      if (participant) {
+        await updateParticipant(participant.id, participantData);
       } else {
-        await addMember(memberData);
+        await addParticipant(participantData);
       }
 
       onClose();
     } catch (error) {
-      Alert.alert('Error', `Failed to ${member ? 'update' : 'add'} member`);
+      Alert.alert('Error', `Failed to ${participant ? 'update' : 'add'} participant`);
     } finally {
       setLoading(false);
     }
   };
 
-  const selectedCommittee = committees.find(c => c.id === committeeId);
+  const selectedGroup = groups.find(c => c.id === groupId);
   const selectedStatus = STATUS_OPTIONS.find(s => s.value === status);
 
   return (
@@ -150,7 +150,7 @@ export const MemberModal: React.FC<MemberModalProps> = ({
       >
         <View style={[styles.header, { borderBottomColor: borderColor }]}>
           <Text style={[styles.title, { color: textColor }]}>
-            {member ? 'Edit Member' : 'New Member'}
+            {participant ? 'Edit Participant' : 'New Participant'}
           </Text>
           <TouchableOpacity onPress={onClose} style={styles.closeButton}>
             <X size={24} color={textColor} />
@@ -165,7 +165,7 @@ export const MemberModal: React.FC<MemberModalProps> = ({
                 style={[styles.input, { backgroundColor: inputBackground, color: textColor, borderColor }]}
                 value={name}
                 onChangeText={setName}
-                placeholder="Enter member's full name"
+                placeholder="Enter participant's full name"
                 placeholderTextColor={subTextColor}
                 autoFocus={false}
                 blurOnSubmit={false}
@@ -178,7 +178,7 @@ export const MemberModal: React.FC<MemberModalProps> = ({
                 style={[styles.input, { backgroundColor: inputBackground, color: textColor, borderColor }]}
                 value={email}
                 onChangeText={setEmail}
-                placeholder="member@example.com"
+                placeholder="participant@example.com"
                 placeholderTextColor={subTextColor}
                 keyboardType="email-address"
                 autoCapitalize="none"
@@ -202,42 +202,42 @@ export const MemberModal: React.FC<MemberModalProps> = ({
             </View>
 
                         <View style={styles.inputGroup}>
-              <Text style={[styles.label, { color: textColor }]}>Committee *</Text>
+              <Text style={[styles.label, { color: textColor }]}>Group *</Text>
               <TouchableOpacity
                 style={[styles.dropdown, { backgroundColor: inputBackground, borderColor }]}
-                onPress={() => setShowCommitteeDropdown(!showCommitteeDropdown)}
+                onPress={() => setShowGroupDropdown(!showGroupDropdown)}
               >
                 <Text style={[styles.dropdownText, { color: textColor }]} numberOfLines={1}>
-                  {selectedCommittee?.name || 'Select a committee'}
+                  {selectedGroup?.name || 'Select a group'}
                 </Text>
                 <ChevronDown size={16} color={subTextColor} />
               </TouchableOpacity>
               
-              {showCommitteeDropdown && (
+              {showGroupDropdown && (
                 <View style={[styles.dropdownMenu, { backgroundColor: inputBackground, borderColor }]}>
                   <View style={[styles.searchContainer, { backgroundColor: inputBackground, borderBottomColor: borderColor }]}>
                     <TextInput
                       style={[styles.searchInput, { color: textColor }]}
-                      placeholder="Search committees..."
+                      placeholder="Search groups..."
                       placeholderTextColor={subTextColor}
-                      value={committeeSearch}
-                      onChangeText={setCommitteeSearch}
+                      value={groupSearch}
+                      onChangeText={setGroupSearch}
                       autoFocus={false}
                     />
                   </View>
                   <ScrollView style={styles.dropdownScroll} nestedScrollEnabled>
-                  {activeCommittees.map((committee) => (
+                  {activeGroups.map((group) => (
                     <TouchableOpacity
-                      key={committee.id}
+                      key={group.id}
                       style={styles.dropdownItem}
                       onPress={() => {
-                        setCommitteeId(committee.id);
-                        setShowCommitteeDropdown(false);
-                        setCommitteeSearch('');
+                        setGroupId(group.id);
+                        setShowGroupDropdown(false);
+                        setGroupSearch('');
                       }}
                     >
                       <Text style={[styles.dropdownText, { color: textColor }]} numberOfLines={2}>
-                        {committee.name}
+                        {group.name}
                       </Text>
                     </TouchableOpacity>
                   ))}
@@ -317,7 +317,7 @@ export const MemberModal: React.FC<MemberModalProps> = ({
           >
             <Check size={18} color="#ffffff" />
             <Text style={styles.submitButtonText}>
-              {loading ? 'Saving...' : member ? 'Update' : 'Add Member'}
+              {loading ? 'Saving...' : participant ? 'Update' : 'Add Participant'}
             </Text>
           </TouchableOpacity>
         </View>

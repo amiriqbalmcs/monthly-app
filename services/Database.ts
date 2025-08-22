@@ -5,7 +5,7 @@ class DatabaseService {
   private db: SQLite.SQLiteDatabase | null = null;
 
   async initialize() {
-    this.db = await SQLite.openDatabaseAsync('committee_manager.db');
+    this.db = await SQLite.openDatabaseAsync('contribution_tracker.db');
     await this.createTables();
   }
 
@@ -73,7 +73,7 @@ class DatabaseService {
       },
       {
         name: 'Football Club 2025',
-        description: 'Monthly membership fees for club activities and equipment',
+        description: 'Monthly participation fees for club activities and equipment',
         monthly_amount: 200,
         currency: 'USD'
       },

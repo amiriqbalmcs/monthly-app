@@ -7,30 +7,30 @@ import { router } from 'expo-router';
 
 interface PendingContributionsCardProps {
   isDarkMode: boolean;
-  committeeId?: number; // Optional: filter by specific committee
+  groupId?: number; // Optional: filter by specific group
 }
 
 export const PendingContributionsCard: React.FC<PendingContributionsCardProps> = ({ 
   isDarkMode, 
-  committeeId 
+  groupId 
 }) => {
-  const { members, contributions, committees, selectedCurrency } = useApp();
+  const { participants, contributions, groups, selectedCurrency } = useApp();
 
   const pendingData = useMemo(() => {
     const currentMonth = new Date().getMonth();
     const currentYear = new Date().getFullYear();
 
-    // Filter members by committee if specified
-    const relevantMembers = committeeId 
-      ? members.filter(m => m.committee_id === committeeId && m.status === 'active')
-      : members.filter(m => m.status === 'active');
+    // Filter participants by group if specified
+    const relevantParticipants = groupId 
+      ? participants.filter(m => m.group_id === groupId && m.status === 'active')
+      : participants.filter(m => m.status === 'active');
 
-    const pendingMembers = relevantMembers.filter(member => {
-      // Check if member has contributed this month
+    const pendingParticipants = relevantParticipants.filter(participant => {
+      // Check if participant has contributed this month
       const hasContributedThisMonth = contributions.some(contribution => {
         const contribDate = new Date(contribution.date);
         return (
-          contribution.member_id === member.id &&
+          contribution.participant_id === participant.id &&
           contribDate.getMonth() === currentMonth &&
           contribDate.getFullYear() === currentYear
         );
@@ -39,14 +39,14 @@ export const PendingContributionsCard: React.FC<PendingContributionsCardProps> =
       return !hasContributedThisMonth;
     });
 
-    const totalPendingAmount = pendingMembers.reduce((sum, member) => sum + member.monthly_contribution, 0);
+    const totalPendingAmount = pendingParticipants.reduce((sum, participant) => sum + participant.monthly_contribution, 0);
 
     return {
-      members: pendingMembers,
-      count: pendingMembers.length,
+      participants: pendingParticipants,
+      count: pendingParticipants.length,
       totalAmount: totalPendingAmount
     };
-  }, [members, contributions, committeeId, selectedCurrency]);
+  }, [participants, contributions, groupId, selectedCurrency]);
 
   const cardBackground = isDarkMode ? '#1f2937' : '#ffffff';
   const textColor = isDarkMode ? '#ffffff' : '#111827';
@@ -62,7 +62,7 @@ export const PendingContributionsCard: React.FC<PendingContributionsCardProps> =
           <View style={styles.headerText}>
             <Text style={[styles.title, { color: textColor }]}>All Caught Up! 🎉</Text>
             <Text style={[styles.subtitle, { color: subTextColor }]}>
-              All members have contributed this month
+              All participants have contributed this month
             </Text>
           </View>
         </View>
@@ -70,29 +70,29 @@ export const PendingContributionsCard: React.FC<PendingContributionsCardProps> =
     );
   }
 
-  const renderPendingMember = ({ item: member }: { item: any }) => {
-    const committee = committees.find(c => c.id === member.committee_id);
+  const renderPendingParticipant = ({ item: participant }: { item: any }) => {
+    const group = groups.find(c => c.id === participant.group_id);
     
     return (
       <TouchableOpacity 
-        style={styles.memberItem}
+        style={styles.participantItem}
         onPress={() => {
-          // Navigate to add contribution for this member
-          router.push(`/committee/${member.committee_id}`);
+          // Navigate to add contribution for this participant
+          router.push(`/group/${participant.group_id}`);
         }}
       >
-        <View style={styles.memberInfo}>
-          <Text style={[styles.memberName, { color: textColor }]} numberOfLines={1}>
-            {member.name}
+        <View style={styles.participantInfo}>
+          <Text style={[styles.participantName, { color: textColor }]} numberOfLines={1}>
+            {participant.name}
           </Text>
-          {!committeeId && (
-            <Text style={[styles.committeeName, { color: subTextColor }]} numberOfLines={1}>
-              {committee?.name}
+          {!groupId && (
+            <Text style={[styles.groupName, { color: subTextColor }]} numberOfLines={1}>
+              {group?.name}
             </Text>
           )}
         </View>
         <Text style={[styles.pendingAmount, { color: '#ef4444' }]}>
-          {getCurrencySymbol(selectedCurrency)}{member.monthly_contribution.toFixed(0)}
+          {getCurrencySymbol(selectedCurrency)}{participant.monthly_contribution.toFixed(0)}
         </Text>
       </TouchableOpacity>
     );
@@ -122,8 +122,8 @@ export const PendingContributionsCard: React.FC<PendingContributionsCardProps> =
       </View>
 
       <FlatList
-        data={pendingData.members.slice(0, 5)} // Show first 5
-        renderItem={renderPendingMember}
+        data={pendingData.participants.slice(0, 5)} // Show first 5
+        renderItem={renderPendingParticipant}
         keyExtractor={(item) => item.id.toString()}
         scrollEnabled={false}
         ItemSeparatorComponent={() => <View style={{ height: 8 }} />}
@@ -132,10 +132,10 @@ export const PendingContributionsCard: React.FC<PendingContributionsCardProps> =
       {pendingData.count > 5 && (
         <TouchableOpacity 
           style={styles.viewAllButton}
-          onPress={() => router.push('/(tabs)/members')}
+          onPress={() => router.push('/(tabs)/participants')}
         >
           <Text style={styles.viewAllText}>
-            View all {pendingData.count} pending members
+            View all {pendingData.count} pending participants
           </Text>
         </TouchableOpacity>
       )}
@@ -190,22 +190,22 @@ const styles = StyleSheet.create({
     fontSize: 12,
     fontFamily: 'Inter-Medium',
   },
-  memberItem: {
+  participantItem: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
     paddingVertical: 8,
   },
-  memberInfo: {
+  participantInfo: {
     flex: 1,
     marginRight: 12,
   },
-  memberName: {
+  participantName: {
     fontSize: 14,
     fontFamily: 'Inter-Medium',
     marginBottom: 2,
   },
-  committeeName: {
+  groupName: {
     fontSize: 12,
     fontFamily: 'Inter-Regular',
   },

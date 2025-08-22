@@ -12,8 +12,8 @@ export default function ContributionsScreen() {
   const { 
     isDarkMode, 
     contributions,
-    members,
-    committees,
+    participants,
+    groups,
     selectedCurrency,
     isLoading,
     refreshData,
@@ -33,16 +33,16 @@ export default function ContributionsScreen() {
 
   const filteredContributions = useMemo(() => {
     return contributions.filter(contribution => {
-      const member = members.find(m => m.id === contribution.member_id);
-      const committee = committees.find(c => c.id === contribution.committee_id);
+      const participant = participants.find(m => m.id === contribution.participant_id);
+      const group = groups.find(c => c.id === contribution.group_id);
       
       return (
-        member?.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        committee?.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        participant?.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        group?.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
         contribution.note.toLowerCase().includes(searchQuery.toLowerCase())
       );
     });
-  }, [contributions, members, committees, searchQuery]);
+  }, [contributions, participants, groups, searchQuery]);
 
   const monthlyStats = useMemo(() => {
     const thisMonth = new Date();
@@ -96,8 +96,8 @@ export default function ContributionsScreen() {
   };
 
   const renderContributionCard = ({ item: contribution, index }: { item: Contribution; index: number }) => {
-    const member = members.find(m => m.id === contribution.member_id);
-    const committee = committees.find(c => c.id === contribution.committee_id);
+    const participant = participants.find(m => m.id === contribution.participant_id);
+    const group = groups.find(c => c.id === contribution.group_id);
 
     return (
       <Animated.View 
@@ -107,11 +107,11 @@ export default function ContributionsScreen() {
       >
         <View style={styles.cardHeader}>
           <View style={styles.contributionInfo}>
-            <Text style={[styles.memberName, { color: textColor }]} numberOfLines={1}>
-              {member?.name || 'Unknown Member'}
+            <Text style={[styles.participantName, { color: textColor }]} numberOfLines={1}>
+              {participant?.name || 'Unknown Participant'}
             </Text>
-            <Text style={[styles.committeeName, { color: subTextColor }]} numberOfLines={1}>
-              {committee?.name || 'Unknown Committee'}
+            <Text style={[styles.groupName, { color: subTextColor }]} numberOfLines={1}>
+              {group?.name || 'Unknown Group'}
             </Text>
             <View style={styles.dateContainer}>
               <Calendar size={14} color={subTextColor} />
@@ -156,7 +156,7 @@ export default function ContributionsScreen() {
       <DollarSign size={64} color={subTextColor} />
       <Text style={[styles.emptyTitle, { color: textColor }]}>No Contributions Yet</Text>
       <Text style={[styles.emptySubtitle, { color: subTextColor }]}>
-        Start recording member contributions to track committee progress
+        Start recording participant contributions to track group progress
       </Text>
       <TouchableOpacity style={styles.emptyButton} onPress={handleAddContribution}>
         <Text style={styles.emptyButtonText}>Record Contribution</Text>
@@ -169,7 +169,7 @@ export default function ContributionsScreen() {
       <View style={styles.header}>
         <Text style={[styles.title, { color: textColor }]}>Contributions</Text>
         <Text style={[styles.subtitle, { color: subTextColor }]}>
-          Track and manage member payments
+          Track and manage participant payments
         </Text>
       </View>
 
@@ -341,12 +341,12 @@ const styles = StyleSheet.create({
     flex: 1,
     marginRight: 12,
   },
-  memberName: {
+  participantName: {
     fontSize: 16,
     fontFamily: 'Inter-SemiBold',
     marginBottom: 2,
   },
-  committeeName: {
+  groupName: {
     fontSize: 14,
     fontFamily: 'Inter-Regular',
     marginBottom: 6,

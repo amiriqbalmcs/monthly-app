@@ -14,16 +14,16 @@ const screenWidth = Dimensions.get('window').width;
 export default function DashboardScreen() {
   const { 
     isDarkMode, 
-    committees, 
-    members, 
+    groups, 
+    participants, 
     contributions, 
     selectedCurrency, 
     isLoading 
   } = useApp();
 
   const stats = useMemo(() => {
-    const totalCommittees = committees.filter(c => c.is_active).length;
-    const totalMembers = members.filter(m => m.status === 'active').length;
+    const totalGroups = groups.filter(c => c.is_active).length;
+    const totalParticipants = participants.filter(m => m.status === 'active').length;
     const totalContributions = contributions.reduce((sum, c) => sum + c.amount, 0);
     const thisMonthContributions = contributions
       .filter(c => {
@@ -34,12 +34,12 @@ export default function DashboardScreen() {
       .reduce((sum, c) => sum + c.amount, 0);
 
     return {
-      totalCommittees,
-      totalMembers,
+      totalGroups,
+      totalParticipants,
       totalContributions,
       thisMonthContributions
     };
-  }, [committees, members, contributions]);
+  }, [groups, participants, contributions]);
 
   const chartData = useMemo(() => {
     const last6Months = Array.from({ length: 6 }, (_, i) => {
@@ -95,7 +95,7 @@ export default function DashboardScreen() {
       <View style={styles.header}>
         <Text style={[styles.title, { color: textColor }]}>Dashboard</Text>
         <Text style={[styles.subtitle, { color: subTextColor }]}>
-          Welcome back! Here's your committee overview
+          Welcome back! Here's your group overview
         </Text>
       </View>
 
@@ -108,16 +108,16 @@ export default function DashboardScreen() {
           <View style={[styles.statIcon, { backgroundColor: '#dbeafe' }]}>
             <Users size={24} color="#2563eb" />
           </View>
-          <Text style={[styles.statNumber, { color: textColor }]}>{stats.totalCommittees}</Text>
-          <Text style={[styles.statLabel, { color: subTextColor }]}>Active Committees</Text>
+          <Text style={[styles.statNumber, { color: textColor }]}>{stats.totalGroups}</Text>
+          <Text style={[styles.statLabel, { color: subTextColor }]}>Active Groups</Text>
         </Animated.View>
 
         <Animated.View entering={FadeInUp.delay(200)} style={[styles.statCard, { backgroundColor: cardBackground }]}>
           <View style={[styles.statIcon, { backgroundColor: '#dcfce7' }]}>
             <UserPlus size={24} color="#16a34a" />
           </View>
-          <Text style={[styles.statNumber, { color: textColor }]}>{stats.totalMembers}</Text>
-          <Text style={[styles.statLabel, { color: subTextColor }]}>Active Members</Text>
+          <Text style={[styles.statNumber, { color: textColor }]}>{stats.totalParticipants}</Text>
+          <Text style={[styles.statLabel, { color: subTextColor }]}>Active Participants</Text>
         </Animated.View>
 
         <Animated.View entering={FadeInUp.delay(300)} style={[styles.statCard, { backgroundColor: cardBackground }]}>
@@ -196,17 +196,17 @@ export default function DashboardScreen() {
 
         {recentContributions.length > 0 ? (
           recentContributions.map((contribution, index) => {
-            const member = members.find(m => m.id === contribution.member_id);
-            const committee = committees.find(c => c.id === contribution.committee_id);
+            const participant = participants.find(m => m.id === contribution.participant_id);
+            const group = groups.find(c => c.id === contribution.group_id);
             
             return (
               <View key={contribution.id} style={styles.contributionItem}>
                 <View style={styles.contributionInfo}>
-                  <Text style={[styles.memberName, { color: textColor }]}>
-                    {member?.name || 'Unknown Member'}
+                  <Text style={[styles.participantName, { color: textColor }]}>
+                    {participant?.name || 'Unknown Participant'}
                   </Text>
-                  <Text style={[styles.committeeName, { color: subTextColor }]}>
-                    {committee?.name || 'Unknown Committee'}
+                  <Text style={[styles.groupName, { color: subTextColor }]}>
+                    {group?.name || 'Unknown Group'}
                   </Text>
                   <Text style={[styles.contributionDate, { color: subTextColor }]}>
                     {new Date(contribution.date).toLocaleDateString()}
@@ -364,12 +364,12 @@ const styles = StyleSheet.create({
   contributionInfo: {
     flex: 1,
   },
-  memberName: {
+  participantName: {
     fontSize: 16,
     fontFamily: 'Inter-SemiBold',
     marginBottom: 2,
   },
-  committeeName: {
+  groupName: {
     fontSize: 14,
     fontFamily: 'Inter-Regular',
     marginBottom: 2,

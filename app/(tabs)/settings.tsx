@@ -19,8 +19,8 @@ export default function SettingsScreen() {
     toggleTheme, 
     selectedCurrency, 
     setCurrency,
-    committees,
-    members,
+    groups,
+    participants,
     contributions,
     refreshData
   } = useApp();
@@ -36,15 +36,15 @@ export default function SettingsScreen() {
   const handleExportData = async () => {
     try {
       const exportData = {
-        committees,
-        members,
+        groups,
+        participants,
         contributions,
         exportDate: new Date().toISOString(),
         version: '1.0.0'
       };
 
       const jsonString = JSON.stringify(exportData, null, 2);
-      const fileName = `committee-manager-export-${new Date().toISOString().split('T')[0]}.json`;
+      const fileName = `contribution-tracker-export-${new Date().toISOString().split('T')[0]}.json`;
       
       if (Platform.OS === 'web') {
         // For web platform, create a download
@@ -67,7 +67,7 @@ export default function SettingsScreen() {
         if (await Sharing.isAvailableAsync()) {
           await Sharing.shareAsync(fileUri, {
             mimeType: 'application/json',
-            dialogTitle: 'Export Committee Manager Data'
+            dialogTitle: 'Export Contribution Tracker Data'
           });
         } else {
           Alert.alert('Success', `Data exported to: ${fileUri}`);
@@ -92,8 +92,8 @@ export default function SettingsScreen() {
         const importData = JSON.parse(fileContent);
 
         // Validate the import data structure
-        if (!importData.committees || !importData.members || !importData.contributions) {
-          Alert.alert('Error', 'Invalid file format. Please select a valid Committee Manager export file.');
+        if (!importData.groups || !importData.participants || !importData.contributions) {
+          Alert.alert('Error', 'Invalid file format. Please select a valid Contribution Tracker export file.');
           return;
         }
 
@@ -136,7 +136,7 @@ export default function SettingsScreen() {
           text: 'Email Support',
           onPress: () => {
             // In a real app, you would open the email client
-            Alert.alert('Email', 'support@committeemanager.app');
+            Alert.alert('Email', 'support@contributiontracker.app');
           }
         }
       ]
@@ -145,8 +145,8 @@ export default function SettingsScreen() {
 
   const handleAbout = () => {
     Alert.alert(
-      'About Committee Manager',
-      'Committee Manager v1.0.0\n\nA comprehensive solution for managing committees, members, and contributions.\n\nBuilt with React Native and Expo.',
+      'About Contribution Tracker',
+      'Contribution Tracker v1.0.0\n\nA comprehensive solution for managing groups, participants, and contributions.\n\nBuilt with React Native and Expo.',
       [{ text: 'OK' }]
     );
   };
@@ -184,7 +184,7 @@ export default function SettingsScreen() {
       items: [
         {
           title: 'Export Data',
-          subtitle: 'Backup your committees and contributions',
+          subtitle: 'Backup your groups and contributions',
           icon: Upload,
           onPress: handleExportData
         },
@@ -217,8 +217,8 @@ export default function SettingsScreen() {
   ];
 
   const dataStats = {
-    committees: committees.length,
-    members: members.length,
+    groups: groups.length,
+    participants: participants.length,
     contributions: contributions.length,
     totalAmount: contributions.reduce((sum, c) => sum + c.amount, 0)
   };
@@ -241,12 +241,12 @@ export default function SettingsScreen() {
           <Text style={[styles.statsTitle, { color: textColor }]}>Data Overview</Text>
           <View style={styles.statsGrid}>
             <View style={styles.statItem}>
-              <Text style={[styles.statNumber, { color: '#667eea' }]}>{dataStats.committees}</Text>
-              <Text style={[styles.statLabel, { color: subTextColor }]}>Committees</Text>
+              <Text style={[styles.statNumber, { color: '#667eea' }]}>{dataStats.groups}</Text>
+              <Text style={[styles.statLabel, { color: subTextColor }]}>Groups</Text>
             </View>
             <View style={styles.statItem}>
-              <Text style={[styles.statNumber, { color: '#10b981' }]}>{dataStats.members}</Text>
-              <Text style={[styles.statLabel, { color: subTextColor }]}>Members</Text>
+              <Text style={[styles.statNumber, { color: '#10b981' }]}>{dataStats.participants}</Text>
+              <Text style={[styles.statLabel, { color: subTextColor }]}>Participants</Text>
             </View>
             <View style={styles.statItem}>
               <Text style={[styles.statNumber, { color: '#f59e0b' }]}>{dataStats.contributions}</Text>

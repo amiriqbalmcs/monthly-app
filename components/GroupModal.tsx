@@ -1,21 +1,21 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, Modal, TextInput, TouchableOpacity, Alert, ScrollView } from 'react-native';
 import { useApp } from '@/contexts/AppContext';
-import { Committee } from '@/types';
+import { Group } from '@/types';
 import { X, Check } from 'lucide-react-native';
 
-interface CommitteeModalProps {
+interface GroupModalProps {
   visible: boolean;
   onClose: () => void;
-  committee?: Committee | null;
+  group?: Group | null;
 }
 
-export const CommitteeModal: React.FC<CommitteeModalProps> = ({
+export const GroupModal: React.FC<GroupModalProps> = ({
   visible,
   onClose,
-  committee
+  group
 }) => {
-  const { isDarkMode, addCommittee, updateCommittee, selectedCurrency } = useApp();
+  const { isDarkMode, addGroup, updateGroup, selectedCurrency } = useApp();
   
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
@@ -30,23 +30,23 @@ export const CommitteeModal: React.FC<CommitteeModalProps> = ({
   const borderColor = isDarkMode ? '#4b5563' : '#d1d5db';
 
   useEffect(() => {
-    if (committee) {
-      setName(committee.name);
-      setDescription(committee.description);
-      setMonthlyAmount(committee.monthly_amount.toString());
-      setIsActive(!!committee.is_active);
+    if (group) {
+      setName(group.name);
+      setDescription(group.description);
+      setMonthlyAmount(group.monthly_amount.toString());
+      setIsActive(!!group.is_active);
     } else {
-      // Reset form for new committee
+      // Reset form for new group
       setName('');
       setDescription('');
       setMonthlyAmount('');
       setIsActive(true);
     }
-  }, [committee, visible]);
+  }, [group, visible]);
 
   const handleSubmit = async () => {
     if (!name.trim()) {
-      Alert.alert('Error', 'Committee name is required');
+      Alert.alert('Error', 'Group name is required');
       return;
     }
 
@@ -58,7 +58,7 @@ export const CommitteeModal: React.FC<CommitteeModalProps> = ({
     setLoading(true);
     
     try {
-      const committeeData = {
+      const groupData = {
         name: name.trim(),
         description: description.trim(),
         monthly_amount: Number(monthlyAmount),
@@ -66,15 +66,15 @@ export const CommitteeModal: React.FC<CommitteeModalProps> = ({
         created_at: new Date().toISOString()
       };
 
-      if (committee) {
-        await updateCommittee(committee.id, committeeData);
+      if (group) {
+        await updateGroup(group.id, groupData);
       } else {
-        await addCommittee(committeeData);
+        await addGroup(groupData);
       }
 
       onClose();
     } catch (error) {
-      Alert.alert('Error', `Failed to ${committee ? 'update' : 'create'} committee`);
+      Alert.alert('Error', `Failed to ${group ? 'update' : 'create'} group`);
     } finally {
       setLoading(false);
     }
@@ -90,7 +90,7 @@ export const CommitteeModal: React.FC<CommitteeModalProps> = ({
       <View style={[styles.container, { backgroundColor }]}>
         <View style={[styles.header, { borderBottomColor: borderColor }]}>
           <Text style={[styles.title, { color: textColor }]}>
-            {committee ? 'Edit Committee' : 'New Committee'}
+            {group ? 'Edit Group' : 'New Group'}
           </Text>
           <TouchableOpacity onPress={onClose} style={styles.closeButton}>
             <X size={24} color={textColor} />
@@ -100,12 +100,12 @@ export const CommitteeModal: React.FC<CommitteeModalProps> = ({
         <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
           <View style={styles.form}>
             <View style={styles.inputGroup}>
-              <Text style={[styles.label, { color: textColor }]}>Committee Name *</Text>
+              <Text style={[styles.label, { color: textColor }]}>Group Name *</Text>
               <TextInput
                 style={[styles.input, { backgroundColor: inputBackground, color: textColor, borderColor }]}
                 value={name}
                 onChangeText={setName}
-                placeholder="Enter committee name"
+                placeholder="Enter group name"
                 placeholderTextColor={subTextColor}
               />
             </View>
@@ -116,7 +116,7 @@ export const CommitteeModal: React.FC<CommitteeModalProps> = ({
                 style={[styles.textArea, { backgroundColor: inputBackground, color: textColor, borderColor }]}
                 value={description}
                 onChangeText={setDescription}
-                placeholder="Enter committee description"
+                placeholder="Enter group description"
                 placeholderTextColor={subTextColor}
                 multiline
                 numberOfLines={3}
@@ -188,7 +188,7 @@ export const CommitteeModal: React.FC<CommitteeModalProps> = ({
           >
             <Check size={18} color="#ffffff" />
             <Text style={styles.submitButtonText}>
-              {loading ? 'Saving...' : committee ? 'Update' : 'Create'}
+              {loading ? 'Saving...' : group ? 'Update' : 'Create'}
             </Text>
           </TouchableOpacity>
         </View>
