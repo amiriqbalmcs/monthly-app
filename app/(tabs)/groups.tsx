@@ -55,7 +55,9 @@ export default function GroupsScreen() {
   const handleDeleteGroup = (group: Group) => {
     Alert.alert(
       'Delete Group',
-      `Are you sure you want to delete "${group.name}"? This action cannot be undone.`,
+      `Are you sure you want to delete "${group.name}"?  
+This will permanently remove the group, all its participants, and all related transactions.  
+This action cannot be undone.`,
       [
         { text: 'Cancel', style: 'cancel' },
         {
