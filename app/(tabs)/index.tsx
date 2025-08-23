@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react';
+import React, { useMemo, useState } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Dimensions } from 'react-native';
 import { BarChart, LineChart } from 'react-native-chart-kit';
 import { useApp } from '@/contexts/AppContext';
