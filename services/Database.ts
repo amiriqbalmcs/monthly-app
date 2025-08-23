@@ -219,6 +219,19 @@ class DatabaseService {
     `);
   }
 
+  async resetDatabase(): Promise<void> {
+    if (!this.db) return;
+    
+    // Clear all data
+    await this.clearAllData();
+    
+    // Recreate tables (in case of schema changes)
+    await this.createTables();
+    
+    // Seed with sample data
+    await this.seedSampleData();
+  }
+  
   async importData(data: any): Promise<void> {
     if (!this.db) return;
 
