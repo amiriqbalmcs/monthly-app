@@ -192,6 +192,16 @@ export const AppProvider: React.FC<AppProviderProps> = ({ children }) => {
     }
   };
 
+  const resetDatabase = async () => {
+    try {
+      await Database.resetDatabase();
+      await refreshData();
+    } catch (error) {
+      console.error('Failed to reset database:', error);
+      throw error;
+    }
+  };
+  
   const contextValue: AppContextType = {
     isDarkMode,
     toggleTheme,
