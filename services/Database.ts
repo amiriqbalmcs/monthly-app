@@ -5,7 +5,7 @@ class DatabaseService {
   private db: SQLite.SQLiteDatabase | null = null;
 
   async initialize() {
-    this.db = await SQLite.openDatabaseAsync('contribution_tracker.db');
+    this.db = await SQLite.openDatabaseAsync('contribution_tracke.db');
     await this.createTables();
   }
 
