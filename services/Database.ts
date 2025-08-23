@@ -106,7 +106,7 @@ class DatabaseService {
         );
 
         // Add sample contributions for the last 3 months
-        const months = ['2024-01-15', '2024-02-15', '2024-03-15'];
+        const months = ['2025-01-15', '2025-02-15', '2025-03-15'];
         for (const date of months) {
           await this.db.runAsync(
             'INSERT INTO contributions (participant_id, group_id, amount, note, date) VALUES (?, ?, ?, ?, ?)',
