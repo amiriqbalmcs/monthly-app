@@ -362,7 +362,7 @@ const styles = StyleSheet.create({
   },
   chartSection: {
     margin: 20,
-    padding: 20,
+    padding: 0,
     borderRadius: 16,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
