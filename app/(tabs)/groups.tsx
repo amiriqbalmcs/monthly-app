@@ -15,6 +15,7 @@ export default function GroupsScreen() {
     isDarkMode, 
     groups, 
     participants,
+    contributions,
     selectedCurrency,
     isLoading,
     refreshData,
