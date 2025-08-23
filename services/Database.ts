@@ -20,7 +20,7 @@ class DatabaseService {
         description TEXT,
         monthly_amount REAL NOT NULL DEFAULT 0,
         currency TEXT NOT NULL DEFAULT 'USD',
-        created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+        created_at DATETIME DEFAULT '2025-01-01 00:00:00',
         is_active INTEGER DEFAULT 1
       );
     `);
