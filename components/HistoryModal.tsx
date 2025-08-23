@@ -381,7 +381,8 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   chart: {
-    marginVertical: 18,
+    marginVertical: 8,
+    marginHorizontal: 18,
     borderRadius: 16,
     alignSelf: 'center',
   },
