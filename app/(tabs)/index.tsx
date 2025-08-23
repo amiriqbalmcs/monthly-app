@@ -239,7 +239,7 @@ export default function DashboardScreen() {
       </Animated.View>
 
       <View style={{ height: 120 }} />
-    </ScrollView>
+    
 
     {selectedGroupForHistory && (
       <HistoryModal
@@ -254,7 +254,9 @@ export default function DashboardScreen() {
     )}
   );
 }
-
+      
+</ScrollView>
+    
 const styles = StyleSheet.create({
   container: {
     flex: 1,
