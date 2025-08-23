@@ -239,7 +239,7 @@ export default function DashboardScreen() {
       </Animated.View>
 
       <View style={{ height: 120 }} />
-    
+   
 
     {selectedGroupForHistory && (
       <HistoryModal
@@ -252,10 +252,12 @@ export default function DashboardScreen() {
         isDarkMode={isDarkMode}
       />
     )}
+  </ScrollView> 
+    
   );
 }
       
-</ScrollView>
+
     
 const styles = StyleSheet.create({
   container: {
