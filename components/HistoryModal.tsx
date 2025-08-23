@@ -3,7 +3,7 @@ import { View, Text, StyleSheet, Modal, TouchableOpacity, FlatList, Dimensions }
 import { BarChart } from 'react-native-chart-kit';
 import { useApp } from '@/contexts/AppContext';
 import { getCurrencySymbol } from '@/types';
-import { X, Calendar, ChevronLeft, ChevronRight, TrendingUp, Users, DollarSign } from 'lucide-react-native';
+import { X, Calendar, ChevronLeft, ChevronRight, TrendingUp, Users, DollarSign } from 'lucidereact-native';
 
 interface HistoryModalProps {
   visible: boolean;
@@ -362,7 +362,7 @@ const styles = StyleSheet.create({
   },
   chartSection: {
     margin: 20,
-    padding: 0,
+    padding: 20,
     borderRadius: 16,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
