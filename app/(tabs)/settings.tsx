@@ -22,7 +22,8 @@ export default function SettingsScreen() {
     groups,
     participants,
     contributions,
-    refreshData
+    refreshData,
+    resetDatabase
   } = useApp();
 
   const [isCurrencyModalVisible, setIsCurrencyModalVisible] = useState(false);
@@ -126,6 +127,29 @@ export default function SettingsScreen() {
     }
   };
 
+const handleResetDatabase = () => {
+    Alert.alert(
+      'Reset Database',
+      'This will permanently delete ALL your data and restore sample data. This action cannot be undone.\n\nAre you absolutely sure?',
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Reset Everything',
+          style: 'destructive',
+          onPress: async () => {
+            try {
+              await resetDatabase();
+              Alert.alert('Success', 'Database has been reset with sample data');
+            } catch (error) {
+              console.error('Reset error:', error);
+              Alert.alert('Error', 'Failed to reset database');
+            }
+          }
+        }
+      ]
+    );
+  };
+  
   const handleContactSupport = () => {
     Alert.alert(
       'Contact Support',
@@ -193,6 +217,12 @@ export default function SettingsScreen() {
           subtitle: 'Restore from backup file',
           icon: Download,
           onPress: handleImportData
+        },
+        {
+          title: 'Reset Database',
+          subtitle: 'Delete all data and restore samples',
+          icon: RotateCcw,
+          onPress: handleResetDatabase
         }
       ]
     },
