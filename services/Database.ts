@@ -193,6 +193,14 @@ class DatabaseService {
 
   async deleteGroup(id: number): Promise<void> {
     if (!this.db) return;
+    
+    // Delete all contributions for this group first
+    await this.db.runAsync('DELETE FROM contributions WHERE group_id = ?', [id]);
+    
+    // Delete all participants for this group
+    await this.db.runAsync('DELETE FROM participants WHERE group_id = ?', [id]);
+    
+    // Finally delete the group
     await this.db.runAsync('DELETE FROM groups WHERE id = ?', [id]);
   }
 

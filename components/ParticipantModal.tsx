@@ -8,6 +8,7 @@ interface ParticipantModalProps {
   visible: boolean;
   onClose: () => void;
   participant?: Participant | null;
+  preSelectedGroupId?: number; // Pre-select a specific group
 }
 
 const STATUS_OPTIONS = [
@@ -19,7 +20,8 @@ const STATUS_OPTIONS = [
 export const ParticipantModal: React.FC<ParticipantModalProps> = ({
   visible,
   onClose,
-  participant
+  participant,
+  preSelectedGroupId
 }) => {
   const { isDarkMode, groups, addParticipant, updateParticipant } = useApp();
   
@@ -42,11 +44,14 @@ export const ParticipantModal: React.FC<ParticipantModalProps> = ({
 
 
   const activeGroups = useMemo(() => 
-    groups.filter(c => 
-      c.is_active && 
-      c.name.toLowerCase().includes(groupSearch.toLowerCase())
-    ), 
-    [groups, groupSearch]
+    groups.filter(c => {
+      // If preSelectedGroupId is provided, only show that group
+      if (preSelectedGroupId) {
+        return c.id === preSelectedGroupId && c.is_active;
+      }
+      return c.is_active && c.name.toLowerCase().includes(groupSearch.toLowerCase());
+    }), 
+    [groups, groupSearch, preSelectedGroupId]
   );
   
   useEffect(() => {
@@ -63,12 +68,12 @@ export const ParticipantModal: React.FC<ParticipantModalProps> = ({
       setEmail('');
       setPhone('');
       setMonthlyContribution('');
-      setGroupId(activeGroups.length > 0 ? activeGroups[0].id : null);
+      setGroupId(preSelectedGroupId || (activeGroups.length > 0 ? activeGroups[0].id : null));
       setStatus('active');
     }
     setShowGroupDropdown(false);
     setShowStatusDropdown(false);
-  }, [participant, visible]);
+  }, [participant, visible, preSelectedGroupId, activeGroups]);
 
   const handleSubmit = async () => {
     if (!name.trim()) {
@@ -203,6 +208,13 @@ export const ParticipantModal: React.FC<ParticipantModalProps> = ({
 
                         <View style={styles.inputGroup}>
               <Text style={[styles.label, { color: textColor }]}>Group *</Text>
+              {preSelectedGroupId ? (
+                <View style={[styles.input, { backgroundColor: inputBackground, borderColor, justifyContent: 'center' }]}>
+                  <Text style={[styles.dropdownText, { color: textColor }]}>
+                    {selectedGroup?.name || 'Selected Group'}
+                  </Text>
+                </View>
+              ) : (
               <TouchableOpacity
                 style={[styles.dropdown, { backgroundColor: inputBackground, borderColor }]}
                 onPress={() => setShowGroupDropdown(!showGroupDropdown)}
@@ -212,8 +224,9 @@ export const ParticipantModal: React.FC<ParticipantModalProps> = ({
                 </Text>
                 <ChevronDown size={16} color={subTextColor} />
               </TouchableOpacity>
+              )}
               
-              {showGroupDropdown && (
+              {showGroupDropdown && !preSelectedGroupId && (
                 <View style={[styles.dropdownMenu, { backgroundColor: inputBackground, borderColor }]}>
                   <View style={[styles.searchContainer, { backgroundColor: inputBackground, borderBottomColor: borderColor }]}>
                     <TextInput

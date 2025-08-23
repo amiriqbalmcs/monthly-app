@@ -399,6 +399,7 @@ export default function GroupDetailScreen() {
         visible={isParticipantModalVisible}
         onClose={() => setIsParticipantModalVisible(false)}
         participant={editingParticipant}
+        preSelectedGroupId={group.id}
       />
 
       <ContributionModal
