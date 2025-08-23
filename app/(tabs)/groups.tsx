@@ -74,7 +74,19 @@ export default function GroupsScreen() {
 
   const getGroupStats = (group: Group) => {
     const groupParticipants = participants.filter(m => m.group_id === group.id && m.status === 'active');
-    const totalCollected = groupParticipants.reduce((sum, participant) => sum + participant.monthly_contribution, 0);
+    
+    // Calculate actual contributions for current month
+    const currentMonth = new Date().getMonth();
+    const currentYear = new Date().getFullYear();
+    const currentMonthContributions = contributions.filter(c => {
+      const contribDate = new Date(c.date);
+      return (
+        c.group_id === group.id &&
+        contribDate.getMonth() === currentMonth &&
+        contribDate.getFullYear() === currentYear
+      );
+    });
+    const totalCollected = currentMonthContributions.reduce((sum, contrib) => sum + contrib.amount, 0);
     
     return {
       participantCount: groupParticipants.length,
