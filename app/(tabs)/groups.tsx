@@ -2,11 +2,12 @@ import React, { useState } from 'react';
 import { View, Text, StyleSheet, FlatList, TouchableOpacity, RefreshControl, Alert } from 'react-native';
 import { useApp } from '@/contexts/AppContext';
 import { Group, getCurrencySymbol } from '@/types';
-import { Plus, Users, DollarSign, CreditCard as Edit, Trash2, Search, Eye, EyeOff } from 'lucide-react-native';
+import { Plus, Users, DollarSign, CreditCard as Edit, Trash2, Search, Eye, EyeOff, Calendar } from 'lucide-react-native';
 import Animated, { FadeInUp, FadeOutUp } from 'react-native-reanimated';
 import { GroupModal } from '@/components/GroupModal';
 import { AdBanner } from '@/components/AdBanner';
 import { AD_CONFIG } from '@/constants/ads';
+import { HistoryModal } from '@/components/HistoryModal';
 import { router } from 'expo-router';
 
 export default function GroupsScreen() {
@@ -24,6 +25,8 @@ export default function GroupsScreen() {
   const [editingGroup, setEditingGroup] = useState<Group | null>(null);
   const [refreshing, setRefreshing] = useState(false);
   const [showInactive, setShowInactive] = useState(false);
+  const [isHistoryModalVisible, setIsHistoryModalVisible] = useState(false);
+  const [selectedGroupForHistory, setSelectedGroupForHistory] = useState<number | null>(null);
 
   const backgroundColor = isDarkMode ? '#111827' : '#f9fafb';
   const cardBackground = isDarkMode ? '#1f2937' : '#ffffff';
@@ -117,6 +120,15 @@ export default function GroupsScreen() {
               onPress={() => handleEditGroup(group)}
             >
               <Edit size={16} color="#ffffff" />
+            </TouchableOpacity>
+            <TouchableOpacity 
+              style={[styles.actionButton, { backgroundColor: '#10b981' }]}
+              onPress={() => {
+                setSelectedGroupForHistory(group.id);
+                setIsHistoryModalVisible(true);
+              }}
+            >
+              <Calendar size={16} color="#ffffff" />
             </TouchableOpacity>
             <TouchableOpacity 
               style={[styles.actionButton, { backgroundColor: '#ef4444' }]}
@@ -252,6 +264,18 @@ export default function GroupsScreen() {
         onClose={() => setIsModalVisible(false)}
         group={editingGroup}
       />
+
+      {selectedGroupForHistory && (
+        <HistoryModal
+          visible={isHistoryModalVisible}
+          onClose={() => {
+            setIsHistoryModalVisible(false);
+            setSelectedGroupForHistory(null);
+          }}
+          groupId={selectedGroupForHistory}
+          isDarkMode={isDarkMode}
+        />
+      )}
     </View>
   );
 }

@@ -119,17 +119,58 @@ class DatabaseService {
 
   async getGroups(): Promise<Group[]> {
     if (!this.db) return [];
-    return await this.db.getAllAsync('SELECT * FROM groups ORDER BY created_at DESC');
+    return await this.db.getAllAsync('SELECT * FROM groups ORDER BY created_at DESC') as Group[];
   }
 
   async getParticipants(): Promise<Participant[]> {
     if (!this.db) return [];
-    return await this.db.getAllAsync('SELECT * FROM participants ORDER BY name ASC');
+    return await this.db.getAllAsync('SELECT * FROM participants ORDER BY name ASC') as Participant[];
   }
 
   async getContributions(): Promise<Contribution[]> {
     if (!this.db) return [];
-    return await this.db.getAllAsync('SELECT * FROM contributions ORDER BY date DESC');
+    return await this.db.getAllAsync('SELECT * FROM contributions ORDER BY date DESC') as Contribution[];
+  }
+
+  async getGroupHistory(groupId: number): Promise<{
+    months: string[];
+    monthlyData: { [month: string]: { total: number; count: number; participants: number } };
+  }> {
+    if (!this.db) return { months: [], monthlyData: {} };
+
+    const contributions = await this.db.getAllAsync(`
+      SELECT 
+        c.*,
+        strftime('%Y-%m', c.date) as month
+      FROM contributions c
+      WHERE c.group_id = ?
+      ORDER BY c.date ASC
+    `, [groupId]) as (Contribution & { month: string })[];
+
+    const participants = await this.db.getAllAsync(`
+      SELECT * FROM participants WHERE group_id = ? AND status = 'active'
+    `, [groupId]) as Participant[];
+
+    const monthlyData: { [month: string]: { total: number; count: number; participants: number } } = {};
+    const months: string[] = [];
+
+    contributions.forEach(contrib => {
+      if (!monthlyData[contrib.month]) {
+        monthlyData[contrib.month] = { total: 0, count: 0, participants: 0 };
+        months.push(contrib.month);
+      }
+      monthlyData[contrib.month].total += contrib.amount;
+      monthlyData[contrib.month].count += 1;
+    });
+
+    // Calculate unique participants per month
+    Object.keys(monthlyData).forEach(month => {
+      const monthContribs = contributions.filter(c => c.month === month);
+      const uniqueParticipants = new Set(monthContribs.map(c => c.participant_id));
+      monthlyData[month].participants = uniqueParticipants.size;
+    });
+
+    return { months: months.sort(), monthlyData };
   }
 
   async addGroup(group: Omit<Group, 'id'>): Promise<void> {

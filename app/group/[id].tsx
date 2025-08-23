@@ -10,6 +10,7 @@ import { ContributionModal } from '@/components/ContributionModal';
 import { PendingContributionsCard } from '@/components/PendingContributionsCard';
 import { AdBanner } from '@/components/AdBanner';
 import { AD_CONFIG } from '@/constants/ads';
+import { HistoryModal } from '@/components/HistoryModal';
 
 export default function GroupDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -28,6 +29,7 @@ export default function GroupDetailScreen() {
   const [isContributionModalVisible, setIsContributionModalVisible] = useState(false);
   const [editingParticipant, setEditingParticipant] = useState<Participant | null>(null);
   const [editingContribution, setEditingContribution] = useState<Contribution | null>(null);
+  const [isHistoryModalVisible, setIsHistoryModalVisible] = useState(false);
 
   const backgroundColor = isDarkMode ? '#111827' : '#f9fafb';
   const cardBackground = isDarkMode ? '#1f2937' : '#ffffff';
@@ -230,6 +232,12 @@ export default function GroupDetailScreen() {
             {group.description}
           </Text>
         </View>
+        <TouchableOpacity 
+          style={[styles.historyButton, { backgroundColor: cardBackground }]}
+          onPress={() => setIsHistoryModalVisible(true)}
+        >
+          <Calendar size={20} color="#667eea" />
+        </TouchableOpacity>
       </View>
 
       <ScrollView showsVerticalScrollIndicator={false}>
@@ -399,6 +407,13 @@ export default function GroupDetailScreen() {
         contribution={editingContribution}
         groupId={group.id}
       />
+
+      <HistoryModal
+        visible={isHistoryModalVisible}
+        onClose={() => setIsHistoryModalVisible(false)}
+        groupId={group.id}
+        isDarkMode={isDarkMode}
+      />
     </View>
   );
 }
@@ -419,6 +434,19 @@ const styles = StyleSheet.create({
   },
   headerContent: {
     flex: 1,
+  },
+  historyButton: {
+    width: 40,
+    height: 40,
+    borderRadius: 10,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginLeft: 12,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 2,
   },
   title: {
     fontSize: 24,

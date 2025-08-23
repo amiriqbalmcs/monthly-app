@@ -8,6 +8,7 @@ import Animated, { FadeInUp } from 'react-native-reanimated';
 import { AdBanner } from '@/components/AdBanner';
 import { PendingContributionsCard } from '@/components/PendingContributionsCard';
 import { AD_CONFIG } from '@/constants/ads';
+import { HistoryModal } from '@/components/HistoryModal';
 
 const screenWidth = Dimensions.get('window').width;
 
@@ -20,6 +21,9 @@ export default function DashboardScreen() {
     selectedCurrency, 
     isLoading 
   } = useApp();
+
+  const [isHistoryModalVisible, setIsHistoryModalVisible] = useState(false);
+  const [selectedGroupForHistory, setSelectedGroupForHistory] = useState<number | null>(null);
 
   const stats = useMemo(() => {
     const totalGroups = groups.filter(c => c.is_active).length;
@@ -200,7 +204,14 @@ export default function DashboardScreen() {
             const group = groups.find(c => c.id === contribution.group_id);
             
             return (
-              <View key={contribution.id} style={styles.contributionItem}>
+              <TouchableOpacity 
+                key={contribution.id} 
+                style={styles.contributionItem}
+                onPress={() => {
+                  setSelectedGroupForHistory(contribution.group_id);
+                  setIsHistoryModalVisible(true);
+                }}
+              >
                 <View style={styles.contributionInfo}>
                   <Text style={[styles.participantName, { color: textColor }]}>
                     {participant?.name || 'Unknown Participant'}
@@ -215,7 +226,7 @@ export default function DashboardScreen() {
                 <Text style={[styles.contributionAmount, { color: textColor }]}>
                   {getCurrencySymbol(selectedCurrency)}{contribution.amount.toFixed(0)}
                 </Text>
-              </View>
+              </TouchableOpacity>
             );
           })
         ) : (
@@ -229,6 +240,18 @@ export default function DashboardScreen() {
 
       <View style={{ height: 120 }} />
     </ScrollView>
+
+    {selectedGroupForHistory && (
+      <HistoryModal
+        visible={isHistoryModalVisible}
+        onClose={() => {
+          setIsHistoryModalVisible(false);
+          setSelectedGroupForHistory(null);
+        }}
+        groupId={selectedGroupForHistory}
+        isDarkMode={isDarkMode}
+      />
+    )}
   );
 }
 
