@@ -212,6 +212,7 @@ export const AppProvider: React.FC<AppProviderProps> = ({ children }) => {
     contributions,
     isLoading,
     refreshData,
+    resetDatabase,
     addGroup,
     updateGroup,
     deleteGroup,
