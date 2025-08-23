@@ -382,7 +382,7 @@ const styles = StyleSheet.create({
   },
   chart: {
     marginVertical: 8,
-    marginHorizontal: 18,
+    marginHorizontal: 118,
     borderRadius: 16,
     alignSelf: 'center',
   },
