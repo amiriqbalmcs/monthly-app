@@ -5,11 +5,13 @@ import { useFonts, Inter_400Regular, Inter_500Medium, Inter_600SemiBold, Inter_7
 import { SplashScreen } from 'expo-router';
 import { AppProvider } from '@/contexts/AppContext';
 import { useFrameworkReady } from '@/hooks/useFrameworkReady';
+import { useAdMobInitialization } from '@/hooks/useAdMob';
 
 SplashScreen.preventAutoHideAsync();
 
 export default function RootLayout() {
   useFrameworkReady();
+  useAdMobInitialization();
 
   const [fontsLoaded, fontError] = useFonts({
     'Inter-Regular': Inter_400Regular,

@@ -1,5 +1,6 @@
-import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Alert } from 'react-native';
+import React, { useEffect, useState } from 'react';
+import { View, Text, StyleSheet, TouchableOpacity, Alert, Platform } from 'react-native';
+import { BannerAd, BannerAdSize, TestIds } from 'react-native-google-mobile-ads';
 import { AD_CONFIG, PRO_VERSION_INFO } from '@/constants/ads';
 import { X, Crown } from 'lucide-react-native';
 
@@ -8,6 +9,9 @@ interface AdBannerProps {
 }
 
 export const AdBanner: React.FC<AdBannerProps> = ({ isDarkMode }) => {
+  const [adError, setAdError] = useState(false);
+  const [adLoaded, setAdLoaded] = useState(false);
+
   if (!AD_CONFIG.SHOW_ADS) return null;
 
   const backgroundColor = isDarkMode ? '#1f2937' : '#f3f4f6';
@@ -30,17 +34,50 @@ export const AdBanner: React.FC<AdBannerProps> = ({ isDarkMode }) => {
     );
   };
 
-  return (
-    <View style={[styles.container, { backgroundColor }]}>
-      <View style={styles.adContent}>
-        <Text style={[styles.adLabel, { color: subTextColor }]}>Advertisement</Text>
-        <Text style={[styles.adText, { color: textColor }]}>
-          [Demo Ad Space - Your Ad Here]
-        </Text>
-        <Text style={[styles.adSubtext, { color: subTextColor }]}>
-          Sponsored content helps keep this app free
-        </Text>
+  // Use test ads for development, real ads for production
+  const adUnitId = __DEV__ ? TestIds.BANNER : AD_CONFIG.BANNER_AD_ID;
+
+  if (Platform.OS === 'web' || adError) {
+    // Fallback for web or when ads fail to load
+    return (
+      <View style={[styles.container, { backgroundColor }]}>
+        <View style={styles.adContent}>
+          <Text style={[styles.adLabel, { color: subTextColor }]}>Advertisement</Text>
+          <Text style={[styles.adText, { color: textColor }]}>
+            [Demo Ad Space - Your Ad Here]
+          </Text>
+          <Text style={[styles.adSubtext, { color: subTextColor }]}>
+            Sponsored content helps keep this app free
+          </Text>
+        </View>
+        
+        <TouchableOpacity style={styles.proButton} onPress={handleProInfo}>
+          <Crown size={16} color="#fbbf24" />
+          <Text style={styles.proText}>Go Pro</Text>
+        </TouchableOpacity>
       </View>
+    );
+  }
+
+  return (
+    <View style={[styles.adContainer, { backgroundColor }]}>
+      <Text style={[styles.adLabel, { color: subTextColor }]}>Advertisement</Text>
+      <BannerAd
+        unitId={adUnitId}
+        size={BannerAdSize.ADAPTIVE_BANNER}
+        requestOptions={{
+          requestNonPersonalizedAdsOnly: true,
+        }}
+        onAdLoaded={() => {
+          setAdLoaded(true);
+          setAdError(false);
+        }}
+        onAdFailedToLoad={(error) => {
+          console.log('Banner ad failed to load:', error);
+          setAdError(true);
+          setAdLoaded(false);
+        }}
+      />
       
       <TouchableOpacity style={styles.proButton} onPress={handleProInfo}>
         <Crown size={16} color="#fbbf24" />
@@ -60,6 +97,13 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
   },
+  adContainer: {
+    marginHorizontal: 20,
+    marginVertical: 8,
+    padding: 12,
+    borderRadius: 8,
+    alignItems: 'center',
+  },
   adContent: {
     flex: 1,
   },
@@ -68,6 +112,7 @@ const styles = StyleSheet.create({
     fontFamily: 'Inter-Regular',
     textTransform: 'uppercase',
     marginBottom: 2,
+    textAlign: 'center',
   },
   adText: {
     fontSize: 14,
@@ -86,6 +131,7 @@ const styles = StyleSheet.create({
     paddingVertical: 6,
     borderRadius: 16,
     gap: 4,
+    marginTop: 8,
   },
   proText: {
     fontSize: 12,

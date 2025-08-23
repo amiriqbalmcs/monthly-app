@@ -2,6 +2,7 @@ import React, { createContext, useContext, useState, useEffect, ReactNode } from
 import { Database } from '@/services/Database';
 import { Group, Participant, Contribution } from '@/types';
 import { Alert } from 'react-native';
+import { useInterstitialAd } from '@/components/InterstitialAd';
 
 interface AppContextType {
   // Theme
@@ -22,6 +23,7 @@ interface AppContextType {
   
   // Methods
   refreshData: () => Promise<void>;
+  resetDatabase: () => Promise<void>;
   addGroup: (group: Omit<Group, 'id'>) => Promise<void>;
   updateGroup: (id: number, group: Partial<Group>) => Promise<void>;
   deleteGroup: (id: number) => Promise<void>;
@@ -54,6 +56,8 @@ export const AppProvider: React.FC<AppProviderProps> = ({ children }) => {
   const [participants, setParticipants] = useState<Participant[]>([]);
   const [contributions, setContributions] = useState<Contribution[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  
+  const { showAdOnAction } = useInterstitialAd();
 
   useEffect(() => {
     initializeApp();
@@ -106,6 +110,7 @@ export const AppProvider: React.FC<AppProviderProps> = ({ children }) => {
     try {
       await Database.addGroup(group);
       await refreshData();
+      showAdOnAction(); // Show ad after successful action
     } catch (error) {
       console.error('Failed to add group:', error);
       throw error;
@@ -116,6 +121,7 @@ export const AppProvider: React.FC<AppProviderProps> = ({ children }) => {
     try {
       await Database.updateGroup(id, group);
       await refreshData();
+      showAdOnAction(); // Show ad after successful action
     } catch (error) {
       console.error('Failed to update group:', error);
       throw error;
@@ -136,6 +142,7 @@ export const AppProvider: React.FC<AppProviderProps> = ({ children }) => {
     try {
       await Database.addParticipant(participant);
       await refreshData();
+      showAdOnAction(); // Show ad after successful action
     } catch (error) {
       console.error('Failed to add participant:', error);
       throw error;
@@ -146,6 +153,7 @@ export const AppProvider: React.FC<AppProviderProps> = ({ children }) => {
     try {
       await Database.updateParticipant(id, participant);
       await refreshData();
+      showAdOnAction(); // Show ad after successful action
     } catch (error) {
       console.error('Failed to update participant:', error);
       throw error;
@@ -166,6 +174,7 @@ export const AppProvider: React.FC<AppProviderProps> = ({ children }) => {
     try {
       await Database.addContribution(contribution);
       await refreshData();
+      showAdOnAction(); // Show ad after successful action
     } catch (error) {
       console.error('Failed to add contribution:', error);
       throw error;
@@ -176,6 +185,7 @@ export const AppProvider: React.FC<AppProviderProps> = ({ children }) => {
     try {
       await Database.updateContribution(id, contribution);
       await refreshData();
+      showAdOnAction(); // Show ad after successful action
     } catch (error) {
       console.error('Failed to update contribution:', error);
       throw error;
