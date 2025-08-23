@@ -342,7 +342,7 @@ export const HistoryModal: React.FC<HistoryModalProps> = ({
 
 const styles = StyleSheet.create({
   container: {
-    flex: ,
+    flex: 1,
   },
   header: {
     flexDirection: 'row',
