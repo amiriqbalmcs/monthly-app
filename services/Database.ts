@@ -270,7 +270,7 @@ class DatabaseService {
     await this.createTables();
     
     // Seed with sample data
-    //await this.seedSampleData();
+    await this.seedSampleData();
   }
   
   async importData(data: any): Promise<void> {
