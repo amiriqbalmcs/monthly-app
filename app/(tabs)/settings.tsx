@@ -9,7 +9,7 @@ import { CURRENCIES } from '@/types';
 import { CurrencyModal } from '@/components/CurrencyModal';
 import { 
   Moon, Sun, Globe, Download, Upload, Info, 
-  Palette, Database as DatabaseIcon, Share2, Mail, Shield 
+  Palette, Database as DatabaseIcon, Share2, Mail, Shield, RotateCcw
 } from 'lucide-react-native';
 import Animated, { FadeInUp } from 'react-native-reanimated';
 
