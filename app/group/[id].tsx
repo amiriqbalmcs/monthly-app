@@ -7,6 +7,9 @@ import { ArrowLeft, Users, DollarSign, TrendingUp, Calendar, Plus, CreditCard as
 import Animated, { FadeInUp } from 'react-native-reanimated';
 import { ParticipantModal } from '@/components/ParticipantModal';
 import { ContributionModal } from '@/components/ContributionModal';
+import { PendingContributionsCard } from '@/components/PendingContributionsCard';
+import { AdBanner } from '@/components/AdBanner';
+import { AD_CONFIG } from '@/constants/ads';
 
 export default function GroupDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -52,7 +55,7 @@ export default function GroupDetailScreen() {
       return date.getMonth() === now.getMonth() && date.getFullYear() === now.getFullYear();
     });
     const thisMonthTotal = thisMonthContributions.reduce((sum, c) => sum + c.amount, 0);
-    const progress = group?.monthly_amount ? (thisMonthTotal / group.monthly_amount) * 100 : 0;
+    const progress = group?.monthly_amount ? (thisMonthTotal / group.monthly_amount) * 100 : 0; 
 
     return {
       totalParticipants: groupParticipants.length,
@@ -284,6 +287,12 @@ export default function GroupDetailScreen() {
             />
           </View>
         </Animated.View>
+
+        <PendingContributionsCard isDarkMode={isDarkMode} groupId={parseInt(id || '0')} />
+
+        {AD_CONFIG.SHOW_ADS && AD_CONFIG.SHOW_BANNER_ON_TABS && (
+          <AdBanner isDarkMode={isDarkMode} />
+        )}
 
         {/* Tab Navigation */}
         <Animated.View entering={FadeInUp.delay(500)} style={[styles.tabContainer, { backgroundColor: cardBackground }]}>
