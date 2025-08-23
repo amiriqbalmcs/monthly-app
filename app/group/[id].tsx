@@ -171,7 +171,7 @@ export default function GroupDetailScreen() {
   };
 
   const renderContributionItem = ({ item: contribution }: { item: Contribution }) => {
-    const participant = participants.find(m => m.id === contribution.member_id);
+    const participant = participants.find(m => m.id === contribution.participant_id);
 
     return (
       <View style={[styles.listItem, { backgroundColor: cardBackground }]}>
