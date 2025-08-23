@@ -57,7 +57,7 @@ export default function GroupDetailScreen() {
       return date.getMonth() === now.getMonth() && date.getFullYear() === now.getFullYear();
     });
     const thisMonthTotal = thisMonthContributions.reduce((sum, c) => sum + c.amount, 0);
-    const progress = group?.monthly_amount ? (thisMonthTotal / group.monthly_amount) * 100 : 0; 
+    const progress = group?.monthly_amount && group.monthly_amount > 0 ? (thisMonthTotal / group.monthly_amount) * 100 : 0;
 
     return {
       totalParticipants: groupParticipants.length,
