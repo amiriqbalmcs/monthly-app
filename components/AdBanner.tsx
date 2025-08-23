@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Alert, Platform } from 'react-native';
-import { BannerAd, BannerAdSize, TestIds } from 'react-native-google-mobile-ads';
+import { BannerAd, BannerAdSize, TestIds, GAMBannerAd } from 'react-native-google-mobile-ads';
 import { AD_CONFIG, PRO_VERSION_INFO } from '@/constants/ads';
 import { X, Crown } from 'lucide-react-native';
 
@@ -35,7 +35,7 @@ export const AdBanner: React.FC<AdBannerProps> = ({ isDarkMode }) => {
   };
 
   // Use test ads for development, real ads for production
-  const adUnitId = __DEV__ ? TestIds.BANNER : AD_CONFIG.BANNER_AD_ID;
+  const adUnitId = __DEV__ || Platform.OS === 'web' ? TestIds.BANNER : AD_CONFIG.BANNER_AD_ID;
 
   if (Platform.OS === 'web' || adError) {
     // Fallback for web or when ads fail to load
@@ -62,22 +62,24 @@ export const AdBanner: React.FC<AdBannerProps> = ({ isDarkMode }) => {
   return (
     <View style={[styles.adContainer, { backgroundColor }]}>
       <Text style={[styles.adLabel, { color: subTextColor }]}>Advertisement</Text>
-      <BannerAd
-        unitId={adUnitId}
-        size={BannerAdSize.ADAPTIVE_BANNER}
-        requestOptions={{
-          requestNonPersonalizedAdsOnly: true,
-        }}
-        onAdLoaded={() => {
-          setAdLoaded(true);
-          setAdError(false);
-        }}
-        onAdFailedToLoad={(error) => {
-          console.log('Banner ad failed to load:', error);
-          setAdError(true);
-          setAdLoaded(false);
-        }}
-      />
+      <View style={styles.adWrapper}>
+        <BannerAd
+          unitId={adUnitId}
+          size={BannerAdSize.ADAPTIVE_BANNER}
+          requestOptions={{
+            requestNonPersonalizedAdsOnly: true,
+          }}
+          onAdLoaded={() => {
+            setAdLoaded(true);
+            setAdError(false);
+          }}
+          onAdFailedToLoad={(error) => {
+            console.log('Banner ad failed to load:', error);
+            setAdError(true);
+            setAdLoaded(false);
+          }}
+        />
+      </View>
       
       <TouchableOpacity style={styles.proButton} onPress={handleProInfo}>
         <Crown size={16} color="#fbbf24" />
@@ -103,6 +105,11 @@ const styles = StyleSheet.create({
     padding: 12,
     borderRadius: 8,
     alignItems: 'center',
+  },
+  adWrapper: {
+    width: '100%',
+    alignItems: 'center',
+    marginVertical: 8,
   },
   adContent: {
     flex: 1,

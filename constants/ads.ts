@@ -3,11 +3,15 @@ export const AD_CONFIG = {
   // Toggle ads on/off for different releases
   SHOW_ADS: true, // Set to false for pro version or testing
   
-  // REPLACE THESE WITH YOUR REAL AD UNIT IDs FOR PRODUCTION
+  // REPLACE THESE WITH YOUR REAL AD UNIT IDs FROM ADMOB CONSOLE
   // Current IDs are Google's test ad unit IDs
-  BANNER_AD_ID: 'ca-app-pub-3940256099942544/6300978111', // Replace with your banner ad ID
-  INTERSTITIAL_AD_ID: 'ca-app-pub-3940256099942544/1033173712', // Replace with your interstitial ad ID
-  REWARDED_AD_ID: 'ca-app-pub-3940256099942544/5224354917', // Replace with your rewarded ad ID
+  BANNER_AD_ID: 'ca-app-pub-3940256099942544/6300978111', // Test Banner Ad ID
+  INTERSTITIAL_AD_ID: 'ca-app-pub-3940256099942544/1033173712', // Test Interstitial Ad ID  
+  REWARDED_AD_ID: 'ca-app-pub-3940256099942544/5224354917', // Test Rewarded Ad ID
+  
+  // App IDs for configuration (replace with your real app IDs)
+  ANDROID_APP_ID: 'ca-app-pub-3940256099942544~3347511713', // Test Android App ID
+  IOS_APP_ID: 'ca-app-pub-3940256099942544~1458002511', // Test iOS App ID
   
   // Ad placement settings
   SHOW_BANNER_ON_TABS: true,

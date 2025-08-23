@@ -1,6 +1,6 @@
 import { useEffect } from 'react';
 import { Platform } from 'react-native';
-import mobileAds from 'react-native-google-mobile-ads';
+import mobileAds, { AdsConsent, AdsConsentStatus } from 'react-native-google-mobile-ads';
 import { AD_CONFIG } from '@/constants/ads';
 
 export const useAdMobInitialization = () => {
@@ -9,6 +9,14 @@ export const useAdMobInitialization = () => {
 
     const initializeAdMob = async () => {
       try {
+        // Request consent for ads (GDPR compliance)
+        const consentInfo = await AdsConsent.requestInfoUpdate();
+        
+        if (consentInfo.isConsentFormAvailable && consentInfo.status === AdsConsentStatus.REQUIRED) {
+          await AdsConsent.showForm();
+        }
+        
+        // Initialize AdMob
         await mobileAds().initialize();
         console.log('AdMob initialized successfully');
       } catch (error) {
