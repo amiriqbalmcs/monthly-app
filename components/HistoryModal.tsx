@@ -203,7 +203,7 @@ export const HistoryModal: React.FC<HistoryModalProps> = ({
                 {historicalData.chartData && historicalData.chartData.datasets[0].data.some(val => val > 0) ? (
                   <BarChart
                     data={historicalData.chartData}
-                    width={screenWidth - 60}
+                    width={screenWidth - 80}
                     height={180}
                     chartConfig={{
                       backgroundColor: cardBackground,
