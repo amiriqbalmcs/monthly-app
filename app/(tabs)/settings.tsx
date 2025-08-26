@@ -16,7 +16,8 @@ import Animated, { FadeInUp } from 'react-native-reanimated';
 export default function SettingsScreen() {
   const { 
     isDarkMode, 
-    toggleTheme, 
+    themeMode,
+    setThemeMode,
     selectedCurrency, 
     setCurrency,
     groups,
@@ -182,11 +183,16 @@ const handleResetDatabase = () => {
       items: [
         {
           title: 'Theme',
-          subtitle: isDarkMode ? 'Dark Mode' : 'Light Mode',
+          subtitle: themeMode === 'system' ? 'Follow System' : 
+                   themeMode === 'dark' ? 'Dark Mode' : 'Light Mode',
           icon: isDarkMode ? Moon : Sun,
-          onPress: toggleTheme,
-          showToggle: true,
-          value: isDarkMode
+          onPress: () => {
+            // Cycle through theme modes: system -> light -> dark -> system
+            const nextMode = themeMode === 'system' ? 'light' : 
+                           themeMode === 'light' ? 'dark' : 'system';
+            setThemeMode(nextMode);
+          },
+          showToggle: false
         }
       ]
     },
@@ -326,21 +332,6 @@ const handleResetDatabase = () => {
                     </Text>
                   </View>
                 </View>
-                
-                {item.showToggle && (
-                  <View style={[
-                    styles.toggle,
-                    { backgroundColor: item.value ? '#667eea' : (isDarkMode ? '#374151' : '#e5e7eb') }
-                  ]}>
-                    <View style={[
-                      styles.toggleKnob,
-                      { 
-                        backgroundColor: '#ffffff',
-                        transform: [{ translateX: item.value ? 14 : 0 }]
-                      }
-                    ]} />
-                  </View>
-                )}
               </TouchableOpacity>
             ))}
           </Animated.View>

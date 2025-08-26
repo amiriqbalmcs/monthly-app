@@ -1,5 +1,8 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import { Appearance } from 'react-native';
 import { Database } from '@/services/Database';
+import { Storage, AppSettings } from '@/services/StorageService';
+import { useSystemTheme } from '@/hooks/useSystemTheme';
 import { Group, Participant, Contribution } from '@/types';
 import { Alert } from 'react-native';
 import { useInterstitialAd } from '@/components/InterstitialAd';
@@ -7,7 +10,8 @@ import { useInterstitialAd } from '@/components/InterstitialAd';
 interface AppContextType {
   // Theme
   isDarkMode: boolean;
-  toggleTheme: () => void;
+  themeMode: 'system' | 'light' | 'dark';
+  setThemeMode: (mode: 'system' | 'light' | 'dark') => void;
   
   // Currency
   selectedCurrency: string;
@@ -50,14 +54,20 @@ interface AppProviderProps {
 }
 
 export const AppProvider: React.FC<AppProviderProps> = ({ children }) => {
-  const [isDarkMode, setIsDarkMode] = useState(false);
+  const [themeMode, setThemeModeState] = useState<'system' | 'light' | 'dark'>('system');
   const [selectedCurrency, setSelectedCurrency] = useState('USD');
   const [groups, setGroups] = useState<Group[]>([]);
   const [participants, setParticipants] = useState<Participant[]>([]);
   const [contributions, setContributions] = useState<Contribution[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   
+  const systemTheme = useSystemTheme();
   const { showAdOnAction } = useInterstitialAd();
+
+  // Calculate actual dark mode based on theme mode and system preference
+  const isDarkMode = themeMode === 'system' 
+    ? systemTheme === 'dark' 
+    : themeMode === 'dark';
 
   useEffect(() => {
     initializeApp();
@@ -66,6 +76,12 @@ export const AppProvider: React.FC<AppProviderProps> = ({ children }) => {
   const initializeApp = async () => {
     setIsLoading(true);
     try {
+      // Load saved settings first
+      await Storage.migrateOldSettings(); // Handle migration from old storage
+      const settings = await Storage.getSettings();
+      setThemeModeState(settings.themeMode);
+      setSelectedCurrency(settings.selectedCurrency);
+      
       await Database.initialize();
       
       // Only seed data if no groups exist
@@ -98,12 +114,14 @@ export const AppProvider: React.FC<AppProviderProps> = ({ children }) => {
     }
   };
 
-  const toggleTheme = () => {
-    setIsDarkMode(!isDarkMode);
+  const setThemeMode = async (mode: 'system' | 'light' | 'dark') => {
+    setThemeModeState(mode);
+    await Storage.updateThemeMode(mode);
   };
 
-  const setCurrency = (currency: string) => {
+  const setCurrency = async (currency: string) => {
     setSelectedCurrency(currency);
+    await Storage.updateCurrency(currency);
   };
 
   const addGroup = async (group: Omit<Group, 'id'>) => {
@@ -214,7 +232,8 @@ export const AppProvider: React.FC<AppProviderProps> = ({ children }) => {
   
   const contextValue: AppContextType = {
     isDarkMode,
-    toggleTheme,
+    themeMode,
+    setThemeMode,
     selectedCurrency,
     setCurrency,
     groups,
