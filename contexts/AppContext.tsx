@@ -1,5 +1,8 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import { Appearance } from 'react-native';
+import { Storage, AppSettings } from '@/services/StorageService';
 import { Database } from '@/services/Database';
+import { useSystemTheme } from '@/hooks/useSystemTheme';
 import { Group, Participant, Contribution } from '@/types';
 import { Alert } from 'react-native';
 import { useInterstitialAd } from '@/components/InterstitialAd';
@@ -7,7 +10,8 @@ import { useInterstitialAd } from '@/components/InterstitialAd';
 interface AppContextType {
   // Theme
   isDarkMode: boolean;
-  toggleTheme: () => void;
+  themeMode: 'system' | 'light' | 'dark';
+  setThemeMode: (mode: 'system' | 'light' | 'dark') => void;
   
   // Currency
   selectedCurrency: string;
@@ -24,6 +28,7 @@ interface AppContextType {
   // Methods
   refreshData: () => Promise<void>;
   resetDatabase: () => Promise<void>;
+  resetAndSeedDatabase: () => Promise<void>;
   addGroup: (group: Omit<Group, 'id'>) => Promise<void>;
   updateGroup: (id: number, group: Partial<Group>) => Promise<void>;
   deleteGroup: (id: number) => Promise<void>;
@@ -50,14 +55,20 @@ interface AppProviderProps {
 }
 
 export const AppProvider: React.FC<AppProviderProps> = ({ children }) => {
-  const [isDarkMode, setIsDarkMode] = useState(false);
+  const [themeMode, setThemeModeState] = useState<'system' | 'light' | 'dark'>('system');
   const [selectedCurrency, setSelectedCurrency] = useState('USD');
   const [groups, setGroups] = useState<Group[]>([]);
   const [participants, setParticipants] = useState<Participant[]>([]);
   const [contributions, setContributions] = useState<Contribution[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   
+  const systemTheme = useSystemTheme();
   const { showAdOnAction } = useInterstitialAd();
+
+  // Calculate actual dark mode based on theme mode and system preference
+  const isDarkMode = themeMode === 'system' 
+  ? systemTheme === 'dark' 
+  : themeMode === 'dark';
 
   useEffect(() => {
     initializeApp();
@@ -66,12 +77,19 @@ export const AppProvider: React.FC<AppProviderProps> = ({ children }) => {
   const initializeApp = async () => {
     setIsLoading(true);
     try {
-      await Database.initialize();
       
+      // Load saved settings first
+      await Storage.migrateOldSettings(); // Handle migration from old storage
+      const settings = await Storage.getSettings();
+      setThemeModeState(settings.themeMode);
+      setSelectedCurrency(settings.selectedCurrency);
+      
+      await Database.initialize();
+
       // Only seed data if no groups exist
       const existingGroups = await Database.getGroups();
       if (existingGroups.length === 0) {
-        await Database.seedSampleData();
+        //await Database.seedSampleData();
       }
       
       await refreshData();
@@ -98,12 +116,16 @@ export const AppProvider: React.FC<AppProviderProps> = ({ children }) => {
     }
   };
 
-  const toggleTheme = () => {
-    setIsDarkMode(!isDarkMode);
+  const setThemeMode = async (mode: 'system' | 'light' | 'dark') => {
+    setThemeModeState(mode);
+    await Storage.updateThemeMode(mode);
+    showAdOnAction(); // Show ad after successful action
   };
 
-  const setCurrency = (currency: string) => {
+  const setCurrency = async (currency: string) => {
     setSelectedCurrency(currency);
+    await Storage.updateCurrency(currency);
+    showAdOnAction(); // Show ad after successful action
   };
 
   const addGroup = async (group: Omit<Group, 'id'>) => {
@@ -132,6 +154,7 @@ export const AppProvider: React.FC<AppProviderProps> = ({ children }) => {
     try {
       await Database.deleteGroup(id);
       await refreshData();
+      showAdOnAction(); // Show ad after successful action
     } catch (error) {
       console.error('Failed to delete group:', error);
       throw error;
@@ -164,6 +187,7 @@ export const AppProvider: React.FC<AppProviderProps> = ({ children }) => {
     try {
       await Database.deleteParticipant(id);
       await refreshData();
+      showAdOnAction(); // Show ad after successful action
     } catch (error) {
       console.error('Failed to delete participant:', error);
       throw error;
@@ -196,8 +220,20 @@ export const AppProvider: React.FC<AppProviderProps> = ({ children }) => {
     try {
       await Database.deleteContribution(id);
       await refreshData();
+      showAdOnAction(); // Show ad after successful action
     } catch (error) {
       console.error('Failed to delete contribution:', error);
+      throw error;
+    }
+  };
+
+  const resetAndSeedDatabase = async () => {
+    try {
+      await Database.resetAndSeedDatabase();
+      await refreshData();
+      showAdOnAction(); // Show ad after successful action
+    } catch (error) {
+      console.error('Failed to reset database:', error);
       throw error;
     }
   };
@@ -206,6 +242,7 @@ export const AppProvider: React.FC<AppProviderProps> = ({ children }) => {
     try {
       await Database.resetDatabase();
       await refreshData();
+      showAdOnAction(); // Show ad after successful action
     } catch (error) {
       console.error('Failed to reset database:', error);
       throw error;
@@ -214,7 +251,8 @@ export const AppProvider: React.FC<AppProviderProps> = ({ children }) => {
   
   const contextValue: AppContextType = {
     isDarkMode,
-    toggleTheme,
+    themeMode,
+    setThemeMode,
     selectedCurrency,
     setCurrency,
     groups,
@@ -222,6 +260,7 @@ export const AppProvider: React.FC<AppProviderProps> = ({ children }) => {
     contributions,
     isLoading,
     refreshData,
+    resetAndSeedDatabase,
     resetDatabase,
     addGroup,
     updateGroup,

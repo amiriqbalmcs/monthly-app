@@ -34,25 +34,36 @@ export const HistoryModal: React.FC<HistoryModalProps> = ({
 
   const historicalData = useMemo(() => {
     if (!group) return { months: [], chartData: null };
-
-    const groupCreatedDate = new Date(group.created_at);
+  
     const currentDate = new Date();
-    const months = [];
-
-    // Generate all months from group creation to current month
-    let date = new Date(groupCreatedDate.getFullYear(), groupCreatedDate.getMonth(), 1);
+  
+    // Determine the earliest date: either earliest contribution or group creation
+    const contribDates = contributions
+      .filter(c => c.group_id === groupId)
+      .map(c => new Date(c.date));
+    const earliestContribDate = contribDates.length > 0 ? new Date(Math.min(...contribDates)) : new Date(group.created_at);
+   
+    // Generate history months from earliest contribution → current month
+    const historyMonths: Date[] = [];
+    let date = new Date(earliestContribDate.getFullYear(), earliestContribDate.getMonth(), 1);
     while (date <= currentDate) {
-      months.push(new Date(date));
+      historyMonths.push(new Date(date));
       date.setMonth(date.getMonth() + 1);
     }
-
-    // Prepare chart data for last 6 months
-    const last6Months = months.slice(-6);
-    const chartLabels = last6Months.map(date => 
+    
+    // Generate chart data for last 6 months only
+    const chartMonths: Date[] = [];
+    let chartStart = new Date(currentDate.getFullYear(), currentDate.getMonth() - 5, 1); // last 6 months
+    while (chartStart <= currentDate) {
+      chartMonths.push(new Date(chartStart));
+      chartStart.setMonth(chartStart.getMonth() + 1);
+    }
+  
+    const chartLabels = chartMonths.map(date => 
       date.toLocaleDateString('en-US', { month: 'short' })
     );
-    
-    const chartData = last6Months.map(date => {
+  
+    const chartData = chartMonths.map(date => {
       const monthContributions = contributions.filter(c => {
         const contribDate = new Date(c.date);
         return (
@@ -63,9 +74,9 @@ export const HistoryModal: React.FC<HistoryModalProps> = ({
       });
       return monthContributions.reduce((sum, c) => sum + c.amount, 0);
     });
-
+  
     return {
-      months: months.reverse(), // Most recent first
+      months: historyMonths.reverse(), // History: earliest → current (reversed for UI if needed)
       chartData: {
         labels: chartLabels,
         datasets: [{
@@ -76,6 +87,8 @@ export const HistoryModal: React.FC<HistoryModalProps> = ({
       }
     };
   }, [group, contributions, groupId]);
+  
+
 
   const selectedMonthData = useMemo(() => {
     const monthContributions = contributions.filter(c => {
@@ -120,31 +133,50 @@ export const HistoryModal: React.FC<HistoryModalProps> = ({
     } else {
       newDate.setMonth(newDate.getMonth() + 1);
     }
-    
-    // Don't go beyond group creation date or future
-    const groupCreatedDate = new Date(group?.created_at || '');
+  
     const currentDate = new Date();
-    
-    if (newDate >= new Date(groupCreatedDate.getFullYear(), groupCreatedDate.getMonth(), 1) && 
-        newDate <= currentDate) {
+  
+    // Compute earliest relevant date: contribution or group creation
+    const contribDates = contributions
+      .filter(c => c.group_id === groupId)
+      .map(c => new Date(c.date));
+    const earliestDate = contribDates.length > 0
+      ? new Date(Math.min(...contribDates.map(d => d.getTime())))
+      : new Date(group?.created_at || new Date());
+  
+    // Allow navigation only within bounds
+    if (
+      newDate >= new Date(earliestDate.getFullYear(), earliestDate.getMonth(), 1) &&
+      newDate <= currentDate
+    ) {
       setSelectedMonth(newDate);
     }
   };
-
+  
   const canNavigatePrev = useMemo(() => {
     if (!group) return false;
-    const groupCreatedDate = new Date(group.created_at);
+  
+    const contribDates = contributions
+      .filter(c => c.group_id === groupId)
+      .map(c => new Date(c.date));
+    const earliestDate = contribDates.length > 0
+      ? new Date(Math.min(...contribDates.map(d => d.getTime())))
+      : new Date(group.created_at || new Date());
+  
     const prevMonth = new Date(selectedMonth);
     prevMonth.setMonth(prevMonth.getMonth() - 1);
-    return prevMonth >= new Date(groupCreatedDate.getFullYear(), groupCreatedDate.getMonth(), 1);
-  }, [selectedMonth, group]);
-
+  
+    return prevMonth >= new Date(earliestDate.getFullYear(), earliestDate.getMonth(), 1);
+  }, [selectedMonth, group, contributions, groupId]);
+  
   const canNavigateNext = useMemo(() => {
     const nextMonth = new Date(selectedMonth);
     nextMonth.setMonth(nextMonth.getMonth() + 1);
+  
     const currentDate = new Date();
     return nextMonth <= currentDate;
   }, [selectedMonth]);
+  
 
   const renderParticipantHistory = ({ item }: { item: any }) => {
     const statusColor = item.hasContributed ? '#10b981' : '#ef4444';
@@ -361,7 +393,7 @@ const styles = StyleSheet.create({
     padding: 4,
   },
   chartSection: {
-    margin: 20,
+    margin: 10,
     padding: 20,
     borderRadius: 16,
     shadowColor: '#000',
@@ -397,7 +429,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    marginHorizontal: 20,
+    marginHorizontal: 10,
     marginBottom: 20,
     padding: 16,
     borderRadius: 12,
@@ -425,7 +457,7 @@ const styles = StyleSheet.create({
   },
   statsGrid: {
     flexDirection: 'row',
-    paddingHorizontal: 20,
+    paddingHorizontal: 10,
     marginBottom: 20,
     gap: 12,
   },
@@ -459,7 +491,7 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
   progressSection: {
-    marginHorizontal: 20,
+    marginHorizontal: 10,
     padding: 16,
     borderRadius: 12,
     marginBottom: 20,
@@ -492,11 +524,11 @@ const styles = StyleSheet.create({
     borderRadius: 3,
   },
   sectionHeader: {
-    paddingHorizontal: 20,
+    paddingHorizontal: 10,
     marginBottom: 16,
   },
   listContainer: {
-    paddingHorizontal: 20,
+    paddingHorizontal: 10,
   },
   participantHistoryItem: {
     flexDirection: 'row',

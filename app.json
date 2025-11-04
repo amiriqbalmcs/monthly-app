@@ -8,8 +8,14 @@
     "scheme": "myapp",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
+    "splash": {
+      "image": "./assets/images/icon.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#ffffff"
+    },
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "bundleIdentifier": "com.amiriqbalmcs.contributionstracker"
     },
     "web": {
       "bundler": "metro",
@@ -19,16 +25,28 @@
     "plugins": [
       "expo-router",
       "expo-font",
-      "expo-web-browser"
+      "expo-web-browser",
+      [
+        "react-native-google-mobile-ads",
+        {
+          "androidAppId": "ca-app-pub-9750340209158791~9957458408",
+          "iosAppId": "ca-app-pub-3940256099942544~1458002511",
+          "userTrackingUsageDescription": "This identifier will be used to deliver personalized ads to you."
+        }
+      ]
     ],
     "experiments": {
       "typedRoutes": true
     },
+    "android": {
+      "package": "com.amiriqbalmcs.contributionstracker"
+    },
     "extra": {
       "router": {},
       "eas": {
-        "projectId": "7fea29d9-658d-4fc9-a176-2a56914cb65c"
+        "projectId": "28d2b88d-b73f-4984-8488-a7c287067385"
       }
-    }
+    },
+    "owner": "amiriqbalmcs"
   }
 }

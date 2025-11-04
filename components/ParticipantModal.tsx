@@ -275,7 +275,7 @@ export const ParticipantModal: React.FC<ParticipantModalProps> = ({
               </View>
 
               <View style={[styles.inputGroup, { flex: 1, marginLeft: 8 }]}>
-                <Text style={[styles.label, { color: textColor }]}>Status</Text>
+                <Text style={[styles.label, { color: textColor }]}>Participant {'\n'}Status</Text>
                 <TouchableOpacity
                   style={[styles.dropdown, { backgroundColor: inputBackground, borderColor }]}
                   onPress={() => setShowStatusDropdown(!showStatusDropdown)}
@@ -409,13 +409,14 @@ const styles = StyleSheet.create({
     right: 0,
     borderWidth: 1,
     borderRadius: 12,
-    marginTop: 4,
+    marginTop: 5,
     maxHeight: 250,
     zIndex: 1000,
   },
   searchContainer: {
     padding: 12,
     borderBottomWidth: 1,
+    borderRadius: 12,
   },
   searchInput: {
     fontSize: 14,
@@ -427,7 +428,7 @@ const styles = StyleSheet.create({
   dropdownItem: {
     flexDirection: 'row',
     alignItems: 'center',
-    padding: 12,
+    padding: 8,
   },
   statusDot: {
     width: 8,

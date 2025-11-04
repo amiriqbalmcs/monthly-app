@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Alert, Platform } from 'react-native';
-import { BannerAd, BannerAdSize, TestIds } from 'react-native-google-mobile-ads';
+import { BannerAd, BannerAdSize, TestIds, GAMBannerAd } from 'react-native-google-mobile-ads';
 import { AD_CONFIG, PRO_VERSION_INFO } from '@/constants/ads';
 import { X, Crown } from 'lucide-react-native';
 
@@ -35,74 +35,68 @@ export const AdBanner: React.FC<AdBannerProps> = ({ isDarkMode }) => {
   };
 
   // Use test ads for development, real ads for production
-  const adUnitId = __DEV__ ? TestIds.BANNER : AD_CONFIG.BANNER_AD_ID;
+  const adUnitId = __DEV__ || Platform.OS === 'web' ? TestIds.BANNER : AD_CONFIG.BANNER_AD_ID;
 
   if (Platform.OS === 'web' || adError) {
     // Fallback for web or when ads fail to load
     return (
-      <View style={[styles.container, { backgroundColor }]}>
-        <View style={styles.adContent}>
-          <Text style={[styles.adLabel, { color: subTextColor }]}>Advertisement</Text>
-          <Text style={[styles.adText, { color: textColor }]}>
-            [Demo Ad Space - Your Ad Here]
-          </Text>
-          <Text style={[styles.adSubtext, { color: subTextColor }]}>
-            Sponsored content helps keep this app free
-          </Text>
-        </View>
-        
-        <TouchableOpacity style={styles.proButton} onPress={handleProInfo}>
-          <Crown size={16} color="#fbbf24" />
-          <Text style={styles.proText}>Go Pro</Text>
-        </TouchableOpacity>
+      <View>
       </View>
     );
   }
 
   return (
     <View style={[styles.adContainer, { backgroundColor }]}>
-      <Text style={[styles.adLabel, { color: subTextColor }]}>Advertisement</Text>
-      <BannerAd
-        unitId={adUnitId}
-        size={BannerAdSize.ADAPTIVE_BANNER}
-        requestOptions={{
-          requestNonPersonalizedAdsOnly: true,
-        }}
-        onAdLoaded={() => {
-          setAdLoaded(true);
-          setAdError(false);
-        }}
-        onAdFailedToLoad={(error) => {
-          console.log('Banner ad failed to load:', error);
-          setAdError(true);
-          setAdLoaded(false);
-        }}
-      />
+      {/* <Text style={[styles.adLabel, { color: subTextColor }]}>Advertisement</Text> */}
+      <View style={styles.adWrapper}>
+        <BannerAd
+          unitId={adUnitId}
+          size={BannerAdSize.ANCHORED_ADAPTIVE_BANNER}
+          requestOptions={{
+            requestNonPersonalizedAdsOnly: true,
+          }}
+          onAdLoaded={() => {
+            setAdLoaded(true);
+            setAdError(false);
+          }}
+          onAdFailedToLoad={(error) => {
+            console.log('Banner ad failed to load:', error);
+            setAdError(true);
+            setAdLoaded(false);
+          }}
+        />
+      </View>
       
-      <TouchableOpacity style={styles.proButton} onPress={handleProInfo}>
+      {/* <TouchableOpacity style={styles.proButton} onPress={handleProInfo}>
         <Crown size={16} color="#fbbf24" />
         <Text style={styles.proText}>Go Pro</Text>
-      </TouchableOpacity>
+      </TouchableOpacity> */}
     </View>
   );
 };
 
 const styles = StyleSheet.create({
   container: {
-    marginHorizontal: 20,
-    marginVertical: 8,
-    padding: 12,
+    marginHorizontal: 0,
+    marginVertical: 0,
+    padding: 0,
     borderRadius: 8,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
   },
   adContainer: {
-    marginHorizontal: 20,
-    marginVertical: 8,
-    padding: 12,
+    marginHorizontal: 0,
+    marginVertical: 10,
+    paddingTop: 0,
+    paddingBottom: 0,
     borderRadius: 8,
     alignItems: 'center',
+  },
+  adWrapper: {
+    width: '100%',
+    alignItems: 'center',
+    marginVertical: 0,
   },
   adContent: {
     flex: 1,

@@ -5,7 +5,7 @@ class DatabaseService {
   private db: SQLite.SQLiteDatabase | null = null;
 
   async initialize() {
-    this.db = await SQLite.openDatabaseAsync('contribution_tracke.db');
+    this.db = await SQLite.openDatabaseAsync('contribution_tracker.db');
     await this.createTables();
   }
 
@@ -20,7 +20,7 @@ class DatabaseService {
         description TEXT,
         monthly_amount REAL NOT NULL DEFAULT 0,
         currency TEXT NOT NULL DEFAULT 'USD',
-        created_at DATETIME DEFAULT '2025-01-01 00:00:00',
+        created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
         is_active INTEGER DEFAULT 1
       );
     `);
@@ -72,12 +72,6 @@ class DatabaseService {
         currency: 'USD'
       },
       {
-        name: 'Football Club 2025',
-        description: 'Monthly participation fees for club activities and equipment',
-        monthly_amount: 200,
-        currency: 'USD'
-      },
-      {
         name: 'Charity Drive for Flood Relief',
         description: 'Fundraising campaign for disaster relief efforts',
         monthly_amount: 1000,
@@ -95,7 +89,6 @@ class DatabaseService {
       const participants = [
         { name: 'John Doe', email: 'john@example.com', phone: '+1-555-0101', contribution: 50 },
         { name: 'Jane Smith', email: 'jane@example.com', phone: '+1-555-0102', contribution: 75 },
-        { name: 'Mike Johnson', email: 'mike@example.com', phone: '+1-555-0103', contribution: 60 },
         { name: 'Sarah Wilson', email: 'sarah@example.com', phone: '+1-555-0104', contribution: 80 }
       ];
 
@@ -105,8 +98,8 @@ class DatabaseService {
           [result.lastInsertRowId, participant.name, participant.email, participant.phone, participant.contribution, 'active']
         );
 
-        // Add sample contributions for the last 3 months
-        const months = ['2025-05-15', '2025-06-15', '2025-07-15'];
+        // Add sample contributions for the last 2 months
+        const months = ['2025-06-15', '2025-07-15'];
         for (const date of months) {
           await this.db.runAsync(
             'INSERT INTO contributions (participant_id, group_id, amount, note, date) VALUES (?, ?, ?, ?, ?)',
@@ -233,6 +226,8 @@ class DatabaseService {
 
   async deleteParticipant(id: number): Promise<void> {
     if (!this.db) return;
+    // Delete all contributions for this participant
+    await this.db.runAsync('DELETE FROM contributions WHERE participant_id = ?', [id]);
     await this.db.runAsync('DELETE FROM participants WHERE id = ?', [id]);
   }
 
@@ -277,8 +272,19 @@ class DatabaseService {
     // Recreate tables (in case of schema changes)
     await this.createTables();
     
+  }
+
+  async resetAndSeedDatabase(): Promise<void> {
+    if (!this.db) return;
+    
+    // Clear all data
+    await this.clearAllData();
+    
+    // Recreate tables (in case of schema changes)
+    await this.createTables();
+    
     // Seed with sample data
-    await this.seedSampleData();
+   await this.seedSampleData();
   }
   
   async importData(data: any): Promise<void> {
@@ -287,24 +293,24 @@ class DatabaseService {
     // Import groups
     for (const group of data.groups) {
       await this.db.runAsync(
-        'INSERT INTO groups (name, description, monthly_amount, currency, created_at, is_active) VALUES (?, ?, ?, ?, ?, ?)',
-        [group.name, group.description, group.monthly_amount, group.currency, group.created_at, group.is_active]
+        'INSERT INTO groups (id, name, description, monthly_amount, currency, created_at, is_active) VALUES (?, ?, ?, ?, ?, ?, ?)',
+        [group.id, group.name, group.description, group.monthly_amount, group.currency, group.created_at, group.is_active]
       );
     }
 
     // Import participants
     for (const participant of data.participants) {
       await this.db.runAsync(
-        'INSERT INTO participants (group_id, name, email, phone, monthly_contribution, joined_date, status) VALUES (?, ?, ?, ?, ?, ?, ?)',
-        [participant.group_id, participant.name, participant.email, participant.phone, participant.monthly_contribution, participant.joined_date, participant.status]
+        'INSERT INTO participants (id, group_id, name, email, phone, monthly_contribution, joined_date, status) VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
+  [participant.id, participant.group_id, participant.name, participant.email, participant.phone, participant.monthly_contribution, participant.joined_date, participant.status]
       );
     }
 
     // Import contributions
     for (const contribution of data.contributions) {
       await this.db.runAsync(
-        'INSERT INTO contributions (participant_id, group_id, amount, note, date, created_at) VALUES (?, ?, ?, ?, ?, ?)',
-        [contribution.participant_id, contribution.group_id, contribution.amount, contribution.note, contribution.date, contribution.created_at]
+        'INSERT INTO contributions (id, participant_id, group_id, amount, note, date, created_at) VALUES (?, ?, ?, ?, ?, ?, ?)',
+        [contribution.id, contribution.participant_id, contribution.group_id, contribution.amount, contribution.note, contribution.date, contribution.created_at]
       );
     }
   }

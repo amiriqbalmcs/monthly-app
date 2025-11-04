@@ -7,22 +7,25 @@ import { Database } from '@/services/Database';
 import { useApp } from '@/contexts/AppContext';
 import { CURRENCIES } from '@/types';
 import { CurrencyModal } from '@/components/CurrencyModal';
+import { getCurrencySymbol } from '@/types';
 import { 
   Moon, Sun, Globe, Download, Upload, Info, 
-  Palette, Database as DatabaseIcon, Share2, Mail, Shield, RotateCcw
+  Palette, Database as DatabaseIcon, Share2, Mail, Shield, RotateCcw, RefreshCcw
 } from 'lucide-react-native';
 import Animated, { FadeInUp } from 'react-native-reanimated';
 
 export default function SettingsScreen() {
   const { 
     isDarkMode, 
-    toggleTheme, 
+    themeMode,
+    setThemeMode, 
     selectedCurrency, 
     setCurrency,
     groups,
     participants,
     contributions,
     refreshData,
+    resetAndSeedDatabase,
     resetDatabase
   } = useApp();
 
@@ -127,9 +130,9 @@ export default function SettingsScreen() {
     }
   };
 
-const handleResetDatabase = () => {
+const handleResetAndSeedDatabase = () => {
     Alert.alert(
-      'Reset Database',
+      'Reset Database and Seed',
       'This will permanently delete ALL your data and restore sample data. This action cannot be undone.\n\nAre you absolutely sure?',
       [
         { text: 'Cancel', style: 'cancel' },
@@ -138,8 +141,31 @@ const handleResetDatabase = () => {
           style: 'destructive',
           onPress: async () => {
             try {
-              await resetDatabase();
+              await resetAndSeedDatabase();
               Alert.alert('Success', 'Database has been reset with sample data');
+            } catch (error) {
+              console.error('Reset error:', error);
+              Alert.alert('Error', 'Failed to reset database');
+            }
+          }
+        }
+      ]
+    );
+  };
+
+  const handleResetDatabase = () => {
+    Alert.alert(
+      'Reset Database',
+      'This will permanently delete ALL your data. This action cannot be undone.\n\nAre you absolutely sure?',
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Reset Everything',
+          style: 'destructive',
+          onPress: async () => {
+            try {
+              await resetDatabase();
+              Alert.alert('Success', 'Database has been reset');
             } catch (error) {
               console.error('Reset error:', error);
               Alert.alert('Error', 'Failed to reset database');
@@ -160,7 +186,7 @@ const handleResetDatabase = () => {
           text: 'Email Support',
           onPress: () => {
             // In a real app, you would open the email client
-            Alert.alert('Email', 'support@contributiontracker.app');
+            Alert.alert('Email', 'aamirktk49@gmail.com');
           }
         }
       ]
@@ -170,7 +196,7 @@ const handleResetDatabase = () => {
   const handleAbout = () => {
     Alert.alert(
       'About Contribution Tracker',
-      'Contribution Tracker v1.0.0\n\nA comprehensive solution for managing groups, participants, and contributions.\n\nBuilt with React Native and Expo.',
+      'Contribution Tracker v1.0.0\n\nA comprehensive solution for managing groups, participants, and contributions.\n\n',
       [{ text: 'OK' }]
     );
   };
@@ -182,11 +208,16 @@ const handleResetDatabase = () => {
       items: [
         {
           title: 'Theme',
-          subtitle: isDarkMode ? 'Dark Mode' : 'Light Mode',
+          subtitle: themeMode === 'system' ? 'Follow System' : 
+                   themeMode === 'dark' ? 'Dark Mode' : 'Light Mode',
           icon: isDarkMode ? Moon : Sun,
-          onPress: toggleTheme,
-          showToggle: true,
-          value: isDarkMode
+          onPress: () => {
+            // Cycle through theme modes: system -> light -> dark -> system
+            const nextMode = themeMode === 'system' ? 'light' : 
+                           themeMode === 'light' ? 'dark' : 'system';
+            setThemeMode(nextMode);
+          },
+          showToggle: false
         }
       ]
     },
@@ -219,8 +250,14 @@ const handleResetDatabase = () => {
           onPress: handleImportData
         },
         {
-          title: 'Reset Database',
+          title: 'Reset & Seed Database',
           subtitle: 'Delete all data and restore samples',
+          icon: RefreshCcw,
+          onPress: handleResetAndSeedDatabase
+        },
+        {
+          title: 'Reset Database',
+          subtitle: 'Delete all data permanently',
           icon: RotateCcw,
           onPress: handleResetDatabase
         }
@@ -283,7 +320,7 @@ const handleResetDatabase = () => {
               <Text style={[styles.statLabel, { color: subTextColor }]}>Contributions</Text>
             </View>
             <View style={styles.statItem}>
-              <Text style={[styles.statNumber, { color: '#ef4444' }]}>${dataStats.totalAmount.toFixed(0)}</Text>
+              <Text style={[styles.statNumber, { color: '#ef4444' }]}>{getCurrencySymbol(selectedCurrency)}{dataStats.totalAmount.toFixed(0)}</Text>
               <Text style={[styles.statLabel, { color: subTextColor }]}>Total Amount</Text>
             </View>
           </View>

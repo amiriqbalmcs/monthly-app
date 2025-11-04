@@ -9,6 +9,7 @@ import { AdBanner } from '@/components/AdBanner';
 import { PendingContributionsCard } from '@/components/PendingContributionsCard';
 import { AD_CONFIG } from '@/constants/ads';
 import { HistoryModal } from '@/components/HistoryModal';
+import { router } from 'expo-router';
 
 const screenWidth = Dimensions.get('window').width;
 
@@ -108,31 +109,49 @@ export default function DashboardScreen() {
       )}
 
       <View style={styles.statsGrid}>
-        <Animated.View entering={FadeInUp.delay(100)} style={[styles.statCard, { backgroundColor: cardBackground }]}>
-          <View style={[styles.statIcon, { backgroundColor: '#dbeafe' }]}>
-            <Users size={24} color="#2563eb" />
-          </View>
-          <Text style={[styles.statNumber, { color: textColor }]}>{stats.totalGroups}</Text>
-          <Text style={[styles.statLabel, { color: subTextColor }]}>Active Groups</Text>
-        </Animated.View>
+        <TouchableOpacity 
+          activeOpacity={0.8} 
+          onPress={() => router.push('/(tabs)/groups')} 
+          style={[styles.statCard, { backgroundColor: cardBackground }]} // <-- moved here
+        >
+          <Animated.View entering={FadeInUp.delay(100)}>
+            <View style={[styles.statIcon, { backgroundColor: '#dbeafe' }]}>
+              <Users size={24} color="#2563eb" />
+            </View>
+            <Text style={[styles.statNumber, { color: textColor }]}>{stats.totalGroups}</Text>
+            <Text style={[styles.statLabel, { color: subTextColor }]}>Active Groups</Text>
+          </Animated.View>
+        </TouchableOpacity>
 
-        <Animated.View entering={FadeInUp.delay(200)} style={[styles.statCard, { backgroundColor: cardBackground }]}>
-          <View style={[styles.statIcon, { backgroundColor: '#dcfce7' }]}>
-            <UserPlus size={24} color="#16a34a" />
-          </View>
-          <Text style={[styles.statNumber, { color: textColor }]}>{stats.totalParticipants}</Text>
-          <Text style={[styles.statLabel, { color: subTextColor }]}>Active Participants</Text>
-        </Animated.View>
+        <TouchableOpacity 
+          activeOpacity={0.8} 
+          onPress={() => router.push('/(tabs)/participants')} 
+          style={[styles.statCard, { backgroundColor: cardBackground }]} // <-- moved here
+        >
+          <Animated.View entering={FadeInUp.delay(200)}>
+            <View style={[styles.statIcon, { backgroundColor: '#dcfce7' }]}>
+              <UserPlus size={24} color="#16a34a" />
+            </View>
+            <Text style={[styles.statNumber, { color: textColor }]}>{stats.totalParticipants}</Text>
+            <Text style={[styles.statLabel, { color: subTextColor }]}>Active Participants</Text>
+          </Animated.View>
+        </TouchableOpacity>
 
-        <Animated.View entering={FadeInUp.delay(300)} style={[styles.statCard, { backgroundColor: cardBackground }]}>
-          <View style={[styles.statIcon, { backgroundColor: '#fef3c7' }]}>
-            <DollarSign size={24} color="#d97706" />
-          </View>
-          <Text style={[styles.statNumber, { color: textColor }]}>
-            {getCurrencySymbol(selectedCurrency)}{stats.thisMonthContributions.toFixed(0)}
-          </Text>
-          <Text style={[styles.statLabel, { color: subTextColor }]}>This Month</Text>
-        </Animated.View>
+        <TouchableOpacity 
+          activeOpacity={0.8} 
+          onPress={() => router.push('/(tabs)/contributions')} 
+          style={[styles.statCard, { backgroundColor: cardBackground }]} // <-- moved here
+        >
+          <Animated.View entering={FadeInUp.delay(300)}>
+            <View style={[styles.statIcon, { backgroundColor: '#fef3c7' }]}>
+              <DollarSign size={24} color="#d97706" />
+            </View>
+            <Text style={[styles.statNumber, { color: textColor }]}>
+              {getCurrencySymbol(selectedCurrency)}{stats.thisMonthContributions.toFixed(0)}
+            </Text>
+            <Text style={[styles.statLabel, { color: subTextColor }]}>This Month</Text>
+          </Animated.View>
+        </TouchableOpacity>
 
         <Animated.View entering={FadeInUp.delay(400)} style={[styles.statCard, { backgroundColor: cardBackground }]}>
           <View style={[styles.statIcon, { backgroundColor: '#e0e7ff' }]}>
@@ -193,7 +212,7 @@ export default function DashboardScreen() {
       <Animated.View entering={FadeInUp.delay(600)} style={[styles.recentCard, { backgroundColor: cardBackground }]}>
         <View style={styles.recentHeader}>
           <Text style={[styles.recentTitle, { color: textColor }]}>Recent Contributions</Text>
-          <TouchableOpacity>
+          <TouchableOpacity onPress={() => router.push('/(tabs)/contributions')}>
             <Text style={styles.viewAllText}>View All</Text>
           </TouchableOpacity>
         </View>

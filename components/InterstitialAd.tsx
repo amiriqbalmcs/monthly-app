@@ -15,20 +15,27 @@ class InterstitialAdManager {
   }
 
   private initializeAd() {
-    const adUnitId = __DEV__ ? TestIds.INTERSTITIAL : AD_CONFIG.INTERSTITIAL_AD_ID;
+    const adUnitId = __DEV__ || Platform.OS === 'web' ? TestIds.INTERSTITIAL : AD_CONFIG.INTERSTITIAL_AD_ID;
     
     this.interstitial = InterstitialAd.createForAdRequest(adUnitId, {
       requestNonPersonalizedAdsOnly: true,
+      keywords: ['finance', 'productivity', 'business'],
     });
 
     this.interstitial.addAdEventListener(AdEventType.LOADED, () => {
       this.isLoaded = true;
+      console.log('Interstitial ad loaded successfully');
     });
 
     this.interstitial.addAdEventListener(AdEventType.CLOSED, () => {
       this.isLoaded = false;
+      console.log('Interstitial ad closed');
       // Preload the next ad
       this.loadAd();
+    });
+
+    this.interstitial.addAdEventListener(AdEventType.OPENED, () => {
+      console.log('Interstitial ad opened');
     });
 
     this.interstitial.addAdEventListener(AdEventType.ERROR, (error) => {
@@ -42,21 +49,26 @@ class InterstitialAdManager {
   }
 
   private loadAd() {
-    if (this.interstitial && !this.isLoaded) {
+    if (this.interstitial && !this.isLoaded && Platform.OS !== 'web') {
       this.interstitial.load();
     }
   }
 
   public showAdOnAction() {
-    if (!AD_CONFIG.SHOW_ADS || !AD_CONFIG.SHOW_INTERSTITIAL_ON_ACTIONS) return;
+    if (!AD_CONFIG.SHOW_ADS || !AD_CONFIG.SHOW_INTERSTITIAL_ON_ACTIONS || Platform.OS === 'web') return;
 
     this.actionCount++;
+    console.log(`Action count: ${this.actionCount}/${AD_CONFIG.INTERSTITIAL_FREQUENCY}`);
     
     if (this.actionCount >= AD_CONFIG.INTERSTITIAL_FREQUENCY) {
       this.actionCount = 0; // Reset counter
       
       if (this.interstitial && this.isLoaded) {
+        console.log('Showing interstitial ad');
         this.interstitial.show();
+      } else {
+        console.log('Interstitial ad not ready, preloading...');
+        this.loadAd();
       }
     }
   }

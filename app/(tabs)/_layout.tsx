@@ -9,7 +9,8 @@ export default function TabLayout() {
     backgroundColor: isDarkMode ? '#1f2937' : '#ffffff',
     borderTopColor: isDarkMode ? '#374151' : '#e5e7eb',
     paddingBottom: 20,
-    height: 90,
+    paddingTop: 10,
+    height: 60,
   };
 
   const screenOptions = {

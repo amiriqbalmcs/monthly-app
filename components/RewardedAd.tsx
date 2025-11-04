@@ -15,14 +15,16 @@ class RewardedAdManager {
   }
 
   private initializeAd() {
-    const adUnitId = __DEV__ ? TestIds.REWARDED : AD_CONFIG.REWARDED_AD_ID;
+    const adUnitId = __DEV__ || Platform.OS === 'web' ? TestIds.REWARDED : AD_CONFIG.REWARDED_AD_ID;
     
     this.rewardedAd = RewardedAd.createForAdRequest(adUnitId, {
       requestNonPersonalizedAdsOnly: true,
+      keywords: ['finance', 'productivity', 'business'],
     });
 
     this.rewardedAd.addAdEventListener(RewardedAdEventType.LOADED, () => {
       this.isLoaded = true;
+      console.log('Rewarded ad loaded successfully');
     });
 
     this.rewardedAd.addAdEventListener(RewardedAdEventType.EARNED_REWARD, (reward) => {
@@ -36,6 +38,7 @@ class RewardedAdManager {
     this.rewardedAd.addAdEventListener(RewardedAdEventType.CLOSED, () => {
       this.isLoaded = false;
       this.rewardCallback = null;
+      console.log('Rewarded ad closed');
       // Preload the next ad
       this.loadAd();
     });
@@ -52,7 +55,7 @@ class RewardedAdManager {
   }
 
   private loadAd() {
-    if (this.rewardedAd && !this.isLoaded) {
+    if (this.rewardedAd && !this.isLoaded && Platform.OS !== 'web') {
       this.rewardedAd.load();
     }
   }

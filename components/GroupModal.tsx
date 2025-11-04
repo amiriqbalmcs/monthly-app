@@ -28,6 +28,7 @@ export const GroupModal: React.FC<GroupModalProps> = ({
   const subTextColor = isDarkMode ? '#9ca3af' : '#6b7280';
   const inputBackground = isDarkMode ? '#374151' : '#f3f4f6';
   const borderColor = isDarkMode ? '#4b5563' : '#d1d5db';
+  const active = isDarkMode ? '#4b5563' : '#d1d5db';
 
   useEffect(() => {
     if (group) {
@@ -148,7 +149,7 @@ export const GroupModal: React.FC<GroupModalProps> = ({
                 >
                   <Text style={[
                     styles.toggleText,
-                    { color: isActive ? '#ffffff' : textColor }
+                    { color: isActive ? textColor : active }
                   ]}>
                     Active
                   </Text>
@@ -163,7 +164,7 @@ export const GroupModal: React.FC<GroupModalProps> = ({
                 >
                   <Text style={[
                     styles.toggleText,
-                    { color: !isActive ? '#ffffff' : textColor }
+                    { color: !isActive ? textColor : active }
                   ]}>
                     Inactive
                   </Text>
@@ -286,12 +287,14 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     borderRadius: 12,
     overflow: 'hidden',
+    gap: 4,
   },
   toggleOption: {
     flex: 1,
     paddingVertical: 12,
     alignItems: 'center',
     borderWidth: 1,
+    borderRadius: 12,
   },
   activeToggle: {
     backgroundColor: '#667eea',
